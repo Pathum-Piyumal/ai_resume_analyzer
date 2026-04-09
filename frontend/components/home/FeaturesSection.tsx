@@ -15,7 +15,7 @@ export default function FeaturesSection() {
             Precision Engineered for Excellence
           </h2>
           <p className="text-base sm:text-lg text-brand-textMuted font-sans font-light leading-relaxed">
-            Our high-resolution NLP and parser system dissects your professional history, highlighting matches, gap scopes, and keyword suggestions.
+            Our AI analysis tool parses professional history against thousands of successful industry benchmarks.
           </p>
         </div>
 
@@ -24,17 +24,17 @@ export default function FeaturesSection() {
           <FeatureCard
             icon={<Zap className="h-6 w-6" />}
             title="Instant Scoring"
-            description="Get a comprehensive ATS match percentage score in under ten seconds. Understand instantly how close your profile fits the employer requirements."
+            description="Get a comprehensive match in seconds, understand instantly how your resume matches target descriptions."
           />
           <FeatureCard
             icon={<Search className="h-6 w-6" />}
             title="Keyword Optimization"
-            description="Extract and match critical keyphrases. Automatically scan, identify missing professional terms, and align your description keywords."
+            description="Extract and match key critical keyphrases. Automatically scan, identify missing terms."
           />
           <FeatureCard
             icon={<BarChart2 className="h-6 w-6" />}
             title="Skill Gap Analysis"
-            description="Receive actionable recommendations on skills you need to obtain, credentials to show, and wording changes to trigger immediate callbacks."
+            description="Receive actionable recommendations on skills you need to obtain, credentials to show."
           />
         </div>
 
