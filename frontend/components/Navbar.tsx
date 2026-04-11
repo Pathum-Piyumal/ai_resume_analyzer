@@ -1,13 +1,37 @@
 import { useState } from 'react'
 
-export default function Navbar() {
+interface NavbarProps {
+  currentView?: 'landing' | 'analyze'
+  onNavigate?: (view: 'landing' | 'analyze') => void
+}
+
+export default function Navbar({ currentView = 'landing', onNavigate }: NavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false)
 
   const navLinks = [
-    { name: 'Analyze', href: '#analyze' },
+    { name: 'Analyze', view: 'analyze' as const },
     { name: 'Solutions', href: '#solutions' },
     { name: 'Pricing', href: '#pricing' }
   ]
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    onNavigate?.('landing')
+  }
+
+  const handleLinkClick = (e: React.MouseEvent, view?: 'landing' | 'analyze', href?: string) => {
+    if (view) {
+      e.preventDefault()
+      onNavigate?.(view)
+    } else if (href && href.startsWith('#')) {
+      e.preventDefault()
+      onNavigate?.('landing')
+      setTimeout(() => {
+        const el = document.querySelector(href)
+        el?.scrollIntoView({ behavior: 'smooth' })
+      }, 50)
+    }
+  }
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-white/5 bg-brand-dark/85 backdrop-blur-md transition-all duration-300">
@@ -16,7 +40,7 @@ export default function Navbar() {
 
           {/* Logo Brand */}
           <div className="flex items-center">
-            <a href="#" className="flex items-center gap-2 group">
+            <a href="#" onClick={handleLogoClick} className="flex items-center gap-2 group">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-blue to-indigo-600 p-0.5 shadow-lg shadow-brand-blue/10">
                 <div className="flex h-full w-full items-center justify-center rounded-[6px] bg-brand-dark">
                   <svg className="h-4 w-4 text-brand-lightBlue" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -26,7 +50,7 @@ export default function Navbar() {
                 </div>
               </div>
               <span className="font-sans text-lg font-bold tracking-tight text-white">
-                Carbon<span className="text-brand-lightBlue">AI</span>
+                Career<span className="text-brand-lightBlue">AI</span>
               </span>
             </a>
           </div>
@@ -37,8 +61,11 @@ export default function Navbar() {
               {navLinks.map((link) => (
                 <a
                   key={link.name}
-                  href={link.href}
-                  className="text-xs font-semibold text-slate-300 hover:text-white transition-colors duration-200 uppercase tracking-wider"
+                  href={'href' in link ? link.href : '#'}
+                  onClick={(e) => handleLinkClick(e, 'view' in link ? link.view : undefined, 'href' in link ? link.href : undefined)}
+                  className={`text-xs font-semibold hover:text-white transition-colors duration-200 uppercase tracking-wider ${
+                    'view' in link && currentView === link.view ? 'text-brand-lightBlue font-bold' : 'text-slate-300'
+                  }`}
                 >
                   {link.name}
                 </a>
@@ -48,12 +75,21 @@ export default function Navbar() {
 
           {/* Desktop CTA */}
           <div className="hidden md:block">
-            <a
-              href="#analyze"
-              className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-white rounded-md bg-brand-blue hover:bg-blue-700 active:scale-[0.98] transition-all duration-200"
-            >
-              Get Started
-            </a>
+            {currentView === 'landing' ? (
+              <button
+                onClick={() => onNavigate?.('analyze')}
+                className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-white rounded-md bg-brand-blue hover:bg-blue-700 active:scale-[0.98] transition-all duration-200"
+              >
+                Get Started
+              </button>
+            ) : (
+              <button
+                onClick={() => onNavigate?.('landing')}
+                className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-slate-300 hover:text-white rounded-md border border-white/10 hover:bg-white/5 active:scale-[0.98] transition-all duration-200"
+              >
+                Back to Home
+              </button>
+            )}
           </div>
 
           {/* Mobile toggle */}
@@ -88,21 +124,38 @@ export default function Navbar() {
           {navLinks.map((link) => (
             <a
               key={link.name}
-              href={link.href}
-              onClick={() => setIsMobileMenuOpen(false)}
+              href={'href' in link ? link.href : '#'}
+              onClick={(e) => {
+                setIsMobileMenuOpen(false)
+                handleLinkClick(e, 'view' in link ? link.view : undefined, 'href' in link ? link.href : undefined)
+              }}
               className="block rounded-md px-3 py-2 text-base font-medium text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-200"
             >
               {link.name}
             </a>
           ))}
           <div className="mt-4 px-3 pb-2">
-            <a
-              href="#analyze"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="flex w-full items-center justify-center rounded-lg bg-brand-blue py-2.5 text-center text-sm font-semibold text-white shadow-lg active:scale-[0.98] transition-transform duration-150"
-            >
-              Get Started
-            </a>
+            {currentView === 'landing' ? (
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false)
+                  onNavigate?.('analyze')
+                }}
+                className="flex w-full items-center justify-center rounded-lg bg-brand-blue py-2.5 text-center text-sm font-semibold text-white shadow-lg active:scale-[0.98] transition-transform duration-150"
+              >
+                Get Started
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false)
+                  onNavigate?.('landing')
+                }}
+                className="flex w-full items-center justify-center rounded-lg border border-white/10 py-2.5 text-center text-sm font-semibold text-slate-300 hover:text-white active:scale-[0.98] transition-transform duration-150"
+              >
+                Back to Home
+              </button>
+            )}
           </div>
         </div>
       </div>
