@@ -1,7 +1,10 @@
-import React from 'react'
 import { AlertCircle, Plus } from 'lucide-react'
 
-export default function MissingSkillsCard({ skills = [] }) {
+interface MissingSkillsCardProps {
+  skills?: string[]
+}
+
+export default function MissingSkillsCard({ skills = [] }: MissingSkillsCardProps) {
   const defaultMissing = ["GraphQL", "Unit Testing (Jest)", "CI/CD Pipelines", "Next.js", "Docker"]
   const displaySkills = skills.length > 0 ? skills : defaultMissing
 

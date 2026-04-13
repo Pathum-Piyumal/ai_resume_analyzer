@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import Header from '../../components/Header'
 import ResumeUpload from '../../components/ResumeUpload'
 import JobDescription from '../../components/JobDescription'
 import AnalyzeButton from '../../components/AnalyzeButton'
 import ResultsDashboard from '../../components/Results/ResultsDashboard'
-import { Sparkles, BrainCircuit } from 'lucide-react'
+import { BrainCircuit } from 'lucide-react'
 
 // Lightweight skills dictionary to scan job description
 const SKILLS_DICT = [

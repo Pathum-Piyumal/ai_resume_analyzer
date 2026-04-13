@@ -1,9 +1,14 @@
-import React, { useCallback } from 'react'
+import { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { UploadCloud, FileText, X } from 'lucide-react'
 
-export default function ResumeUpload({ file, onFileChange }) {
-  const onDrop = useCallback((acceptedFiles) => {
+interface ResumeUploadProps {
+  file: File | null
+  onFileChange: (file: File | null) => void
+}
+
+export default function ResumeUpload({ file, onFileChange }: ResumeUploadProps) {
+  const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
       onFileChange(acceptedFiles[0])
     }
@@ -20,13 +25,13 @@ export default function ResumeUpload({ file, onFileChange }) {
     multiple: false
   })
 
-  const removeFile = (e) => {
+  const removeFile = (e: React.MouseEvent) => {
     e.stopPropagation()
     onFileChange(null)
   }
 
   // Format file size
-  const formatBytes = (bytes, decimals = 2) => {
+  const formatBytes = (bytes: number, decimals = 2) => {
     if (!bytes) return '0 Bytes'
     const k = 1024
     const dm = decimals < 0 ? 0 : decimals

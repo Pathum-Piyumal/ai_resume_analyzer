@@ -1,7 +1,10 @@
-import React from 'react'
 import { CheckCircle2 } from 'lucide-react'
 
-export default function SkillsCard({ skills = [] }) {
+interface SkillsCardProps {
+  skills?: string[]
+}
+
+export default function SkillsCard({ skills = [] }: SkillsCardProps) {
   const defaultSkills = ["React", "TypeScript", "Tailwind CSS", "RESTful APIs", "State Management", "Git & GitHub"]
   const displaySkills = skills.length > 0 ? skills : defaultSkills
 

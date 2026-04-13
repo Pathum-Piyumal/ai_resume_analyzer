@@ -1,8 +1,12 @@
-import React from 'react'
 import { FileCode2 } from 'lucide-react'
 
-export default function JobDescription({ text, onTextChange }) {
-  const handleChange = (e) => {
+interface JobDescriptionProps {
+  text: string
+  onTextChange: (text: string) => void
+}
+
+export default function JobDescription({ text, onTextChange }: JobDescriptionProps) {
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onTextChange(e.target.value)
   }
 
