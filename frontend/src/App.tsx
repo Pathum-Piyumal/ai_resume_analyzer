@@ -9,10 +9,13 @@ import SkillGapPage from './pages/SkillGapPage'
 import ImprovementsPage from './pages/ImprovementsPage'
 import HistoryPage, { HistoryRow } from './pages/HistoryPage'
 import AdminDashboardPage from './pages/AdminDashboardPage'
+import SignInPage from './pages/SignInPage'
+import SignUpPage from './pages/SignUpPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import { Sparkles, Activity } from 'lucide-react'
 
 export default function App() {
-  const [view, setView] = useState<'landing' | 'app'>('landing')
+  const [view, setView] = useState<'landing' | 'signin' | 'signup' | 'forgot' | 'app'>('landing')
   const [appTab, setAppTab] = useState<string>('dashboard')
   const [analysisResult, setAnalysisResult] = useState<{
     fileName: string
@@ -55,9 +58,36 @@ export default function App() {
   // 1. Marketing / Landing Page View
   if (view === 'landing') {
     return (
-      <RootLayout currentView="landing" onNavigate={() => setView('app')}>
-        <HomePage onNavigate={() => setView('app')} />
+      <RootLayout currentView="landing" onNavigate={(dest) => setView(dest)}>
+        <HomePage onNavigate={(dest) => setView(dest === 'landing' ? 'landing' : 'signup')} />
       </RootLayout>
+    )
+  }
+
+  if (view === 'signin') {
+    return (
+      <SignInPage 
+        onSuccess={() => setView('app')}
+        onSignUpClick={() => setView('signup')}
+        onForgotClick={() => setView('forgot')}
+      />
+    )
+  }
+
+  if (view === 'signup') {
+    return (
+      <SignUpPage 
+        onSuccess={() => setView('app')}
+        onSignInClick={() => setView('signin')}
+      />
+    )
+  }
+
+  if (view === 'forgot') {
+    return (
+      <ForgotPasswordPage 
+        onBackToLogin={() => setView('signin')}
+      />
     )
   }
 

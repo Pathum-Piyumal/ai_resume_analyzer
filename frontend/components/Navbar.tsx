@@ -1,15 +1,15 @@
 import { useState } from 'react'
 
 interface NavbarProps {
-  currentView?: 'landing' | 'analyze'
-  onNavigate?: (view: 'landing' | 'analyze') => void
+  currentView?: 'landing' | 'signin' | 'signup' | 'forgot' | 'app'
+  onNavigate?: (view: 'landing' | 'signin' | 'signup' | 'forgot' | 'app') => void
 }
 
 export default function Navbar({ currentView = 'landing', onNavigate }: NavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false)
 
   const navLinks = [
-    { name: 'Analyze', view: 'analyze' as const },
+    { name: 'Analyze', view: 'signup' as const },
     { name: 'Solutions', href: '#solutions' },
     { name: 'Pricing', href: '#pricing' }
   ]
@@ -19,7 +19,7 @@ export default function Navbar({ currentView = 'landing', onNavigate }: NavbarPr
     onNavigate?.('landing')
   }
 
-  const handleLinkClick = (e: React.MouseEvent, view?: 'landing' | 'analyze', href?: string) => {
+  const handleLinkClick = (e: React.MouseEvent, view?: 'landing' | 'signin' | 'signup' | 'forgot' | 'app', href?: string) => {
     if (view) {
       e.preventDefault()
       onNavigate?.(view)
@@ -76,16 +76,24 @@ export default function Navbar({ currentView = 'landing', onNavigate }: NavbarPr
           {/* Desktop CTA */}
           <div className="hidden md:block">
             {currentView === 'landing' ? (
-              <button
-                onClick={() => onNavigate?.('analyze')}
-                className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-white rounded-md bg-brand-blue hover:bg-blue-700 active:scale-[0.98] transition-all duration-200"
-              >
-                Get Started
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => onNavigate?.('signin')}
+                  className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-slate-300 hover:text-white rounded-md border border-white/10 hover:bg-white/5 active:scale-[0.98] transition-all duration-200 font-sans"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => onNavigate?.('signup')}
+                  className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-white rounded-md bg-brand-blue hover:bg-blue-700 active:scale-[0.98] transition-all duration-200 font-sans"
+                >
+                  Get Started
+                </button>
+              </div>
             ) : (
               <button
                 onClick={() => onNavigate?.('landing')}
-                className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-slate-300 hover:text-white rounded-md border border-white/10 hover:bg-white/5 active:scale-[0.98] transition-all duration-200"
+                className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-slate-300 hover:text-white rounded-md border border-white/10 hover:bg-white/5 active:scale-[0.98] transition-all duration-200 font-sans"
               >
                 Back to Home
               </button>
@@ -136,15 +144,26 @@ export default function Navbar({ currentView = 'landing', onNavigate }: NavbarPr
           ))}
           <div className="mt-4 px-3 pb-2">
             {currentView === 'landing' ? (
-              <button
-                onClick={() => {
-                  setIsMobileMenuOpen(false)
-                  onNavigate?.('analyze')
-                }}
-                className="flex w-full items-center justify-center rounded-lg bg-brand-blue py-2.5 text-center text-sm font-semibold text-white shadow-lg active:scale-[0.98] transition-transform duration-150"
-              >
-                Get Started
-              </button>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false)
+                    onNavigate?.('signin')
+                  }}
+                  className="flex w-full items-center justify-center rounded-lg border border-white/10 py-2.5 text-center text-sm font-semibold text-slate-300 hover:text-white active:scale-[0.98] transition-transform duration-150"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false)
+                    onNavigate?.('signup')
+                  }}
+                  className="flex w-full items-center justify-center rounded-lg bg-brand-blue py-2.5 text-center text-sm font-semibold text-white shadow-lg active:scale-[0.98] transition-transform duration-150"
+                >
+                  Get Started
+                </button>
+              </div>
             ) : (
               <button
                 onClick={() => {
