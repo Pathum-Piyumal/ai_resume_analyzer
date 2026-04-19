@@ -4,8 +4,8 @@ import Footer from '../../components/Footer'
 
 interface RootLayoutProps {
   children: React.ReactNode
-  currentView?: 'landing' | 'analyze'
-  onNavigate?: (view: 'landing' | 'analyze') => void
+  currentView?: 'landing' | 'signin' | 'signup' | 'forgot' | 'app'
+  onNavigate?: (view: 'landing' | 'signin' | 'signup' | 'forgot' | 'app') => void
 }
 
 export default function RootLayout({ children, currentView = 'landing', onNavigate }: RootLayoutProps) {
