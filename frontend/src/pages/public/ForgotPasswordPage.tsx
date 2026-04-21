@@ -27,16 +27,11 @@ export default function ForgotPasswordPage({ onBackToLogin }: ForgotPasswordPage
       {/* Background spotlights */}
       <div className="absolute top-1/4 left-1/2 -z-10 h-[350px] w-[550px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-blue/10 blur-[120px] pointer-events-none" />
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center z-10 select-none">
-        <div className="flex justify-center mb-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-lightBlue border border-brand-blue/15">
-            <Sparkles className="h-5 w-5 text-brand-lightBlue animate-pulse" />
-          </div>
-        </div>
-        <h2 className="text-2xl font-extrabold text-white tracking-tight font-sans">
-          ResumeAI
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center z-10 select-none mt-8">
+        <h2 className="text-3xl font-extrabold text-white tracking-tight font-sans mt-4">
+          Resume<span className="text-brand-lightBlue">AI</span>
         </h2>
-        <p className="mt-1 text-xs text-brand-textMuted font-sans">
+        <p className="mt-2 text-sm text-brand-textMuted font-sans">
           Smart Resume. Smart Career.
         </p>
       </div>
@@ -132,13 +127,8 @@ export default function ForgotPasswordPage({ onBackToLogin }: ForgotPasswordPage
 
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="mt-auto w-full text-center py-6 select-none">
-        <p className="text-[9px] text-brand-textMuted font-sans">
-          &copy; 2026 ResumeAI. All rights reserved.
-        </p>
-      </footer>
     </div>
+
+
   )
 }
