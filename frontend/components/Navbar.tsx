@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import logoUrl from '../src/assets/logo.svg'
 
 interface NavbarProps {
   currentView?: 'landing' | 'signin' | 'signup' | 'forgot' | 'app'
@@ -16,7 +17,11 @@ export default function Navbar({ currentView = 'landing', onNavigate }: NavbarPr
 
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault()
-    onNavigate?.('landing')
+    if (currentView === 'landing') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      onNavigate?.('landing')
+    }
   }
 
   const handleLinkClick = (e: React.MouseEvent, view?: 'landing' | 'signin' | 'signup' | 'forgot' | 'app', href?: string) => {
@@ -41,16 +46,9 @@ export default function Navbar({ currentView = 'landing', onNavigate }: NavbarPr
           {/* Logo Brand */}
           <div className="flex items-center">
             <a href="#" onClick={handleLogoClick} className="flex items-center gap-2 group">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-blue to-indigo-600 p-0.5 shadow-lg shadow-brand-blue/10">
-                <div className="flex h-full w-full items-center justify-center rounded-[6px] bg-brand-dark">
-                  <svg className="h-4 w-4 text-brand-lightBlue" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                    <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 19v4M8 23h8" />
-                  </svg>
-                </div>
-              </div>
+              <img src={logoUrl} alt="ResumeIQ Logo" className="h-10 w-auto object-contain drop-shadow-md" />
               <span className="font-sans text-lg font-bold tracking-tight text-white">
-                Career<span className="text-brand-lightBlue">AI</span>
+                Resume<span className="text-brand-lightBlue">IQ</span>
               </span>
             </a>
           </div>
