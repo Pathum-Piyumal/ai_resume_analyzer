@@ -159,7 +159,7 @@ export default function AnalyzePage({ onComplete }: AnalyzePageProps) {
             AI Engine in Action
           </h2>
           <p className="text-xs text-brand-textMuted font-sans mb-8">
-            Please wait while CareerAI computes matching compatibility.
+            Please wait while ResumeIQ computes matching compatibility.
           </p>
 
           {/* Glassmorphic progress container */}
