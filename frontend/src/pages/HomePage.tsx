@@ -1,6 +1,7 @@
 import HeroSection from '../../components/home/HeroSection'
 import StatsBar from '../../components/home/StatsBar'
 import FeaturesSection from '../../components/home/FeaturesSection'
+import CTASection from '../../components/home/CTASection'
 
 export default function HomePage() {
   return (
@@ -8,6 +9,7 @@ export default function HomePage() {
       <HeroSection />
       <StatsBar />
       <FeaturesSection />
+      <CTASection />
     </div>
   )
 }
