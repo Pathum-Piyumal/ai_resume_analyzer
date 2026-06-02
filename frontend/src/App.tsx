@@ -12,10 +12,13 @@ import AdminDashboardPage from './pages/AdminDashboardPage'
 import SignInPage from './pages/SignInPage'
 import SignUpPage from './pages/SignUpPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
+import TermsOfServicePage from './pages/TermsOfServicePage'
+import SupportPage from './pages/SupportPage'
 import { Sparkles, Activity } from 'lucide-react'
 
 export default function App() {
-  const [view, setView] = useState<'landing' | 'signin' | 'signup' | 'forgot' | 'app'>('landing')
+  const [view, setView] = useState<'landing' | 'signin' | 'signup' | 'forgot' | 'app' | 'privacy' | 'terms' | 'support'>('landing')
   const [appTab, setAppTab] = useState<string>('dashboard')
   const [analysisResult, setAnalysisResult] = useState<{
     fileName: string
@@ -88,6 +91,30 @@ export default function App() {
       <ForgotPasswordPage 
         onBackToLogin={() => setView('signin')}
       />
+    )
+  }
+
+  if (view === 'privacy') {
+    return (
+      <RootLayout currentView="landing" onNavigate={(dest) => setView(dest)}>
+        <PrivacyPolicyPage />
+      </RootLayout>
+    )
+  }
+
+  if (view === 'terms') {
+    return (
+      <RootLayout currentView="landing" onNavigate={(dest) => setView(dest)}>
+        <TermsOfServicePage />
+      </RootLayout>
+    )
+  }
+
+  if (view === 'support') {
+    return (
+      <RootLayout currentView="landing" onNavigate={(dest) => setView(dest)}>
+        <SupportPage />
+      </RootLayout>
     )
   }
 
