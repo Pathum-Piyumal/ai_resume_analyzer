@@ -30,15 +30,10 @@ export default function SignInPage({ onSuccess, onSignUpClick, onForgotClick }: 
       <div className="absolute top-1/4 left-1/2 -z-10 h-[350px] w-[550px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-blue/10 blur-[120px] pointer-events-none" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center z-10">
-        <div className="flex justify-center mb-3 select-none">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-lightBlue border border-brand-blue/15">
-            <Sparkles className="h-5 w-5 text-brand-lightBlue animate-pulse" />
-          </div>
-        </div>
-        <h2 className="text-2xl font-extrabold text-white tracking-tight font-sans">
-          ResumeAI
+        <h2 className="text-3xl font-extrabold text-white tracking-tight font-sans mt-4">
+          Resume<span className="text-brand-lightBlue">AI</span>
         </h2>
-        <p className="mt-1 text-xs text-brand-textMuted font-sans">
+        <p className="mt-2 text-sm text-brand-textMuted font-sans">
           Smart Resume. Smart Career.
         </p>
       </div>
@@ -166,20 +161,8 @@ export default function SignInPage({ onSuccess, onSignUpClick, onForgotClick }: 
           </div>
         </div>
       </div>
-
-      {/* Footer support metadata links */}
-      <footer className="mt-auto w-full text-center py-6 select-none space-y-4">
-        <div className="flex justify-center gap-6 text-[10px] text-brand-textMuted font-sans font-light">
-          <a href="#privacy" className="hover:text-white transition-colors">Privacy Policy</a>
-          <span className="text-white/10">•</span>
-          <a href="#terms" className="hover:text-white transition-colors">Terms of Service</a>
-          <span className="text-white/10">•</span>
-          <a href="#help" className="hover:text-white transition-colors">Help Center</a>
-        </div>
-        <p className="text-[9px] text-brand-textMuted font-sans">
-          &copy; 2026 ResumeAI. AI-Powered Career Advancement.
-        </p>
-      </footer>
     </div>
+
+
   )
 }

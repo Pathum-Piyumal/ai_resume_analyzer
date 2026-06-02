@@ -47,46 +47,21 @@ export default function SignUpPage({ onSuccess, onSignInClick }: SignUpPageProps
       {/* Background spotlights */}
       <div className="absolute top-1/4 left-1/2 -z-10 h-[450px] w-[650px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-blue/10 blur-[130px] pointer-events-none" />
 
-      {/* Header */}
-      <header className="w-full max-w-7xl mx-auto px-6 lg:px-8 h-20 flex items-center justify-between z-10 select-none">
-        <div className="flex items-center gap-2 group cursor-pointer" onClick={onSignInClick}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-blue to-indigo-600 p-0.5 shadow-lg shadow-brand-blue/10">
-            <div className="flex h-full w-full items-center justify-center rounded-[6px] bg-brand-dark">
-              <svg className="h-4 w-4 text-brand-lightBlue" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 19v4M8 23h8" />
-              </svg>
-            </div>
-          </div>
-          <span className="font-sans text-lg font-bold tracking-tight text-white">
-            Resume<span className="text-brand-lightBlue">AI</span>
-          </span>
-        </div>
-
-        <div className="flex items-center gap-6 text-xs text-brand-textMuted font-semibold">
-          <a href="#help" className="hover:text-white transition-colors">Help Center</a>
-          <span className="text-white/10">|</span>
-          <a href="#sales" className="hover:text-white transition-colors">Contact Sales</a>
-        </div>
-      </header>
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center z-10 mt-8">
+        <h2 className="text-3xl font-extrabold text-white tracking-tight font-sans mt-4">
+          Resume<span className="text-brand-lightBlue">AI</span>
+        </h2>
+        <p className="mt-2 text-sm text-brand-textMuted font-sans">
+          Smart Resume. Smart Career.
+        </p>
+      </div>
 
       {/* Main Container */}
       <div className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 z-10">
         <div className="w-full max-w-lg">
           <div className="bg-brand-card/45 border border-white/5 py-8 px-6 sm:px-10 shadow-2xl rounded-2xl backdrop-blur-md">
             
-            {/* Step & Titles */}
-            <div className="text-center mb-6 select-none">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-brand-blue/10 text-brand-lightBlue border border-brand-blue/20 tracking-wider uppercase font-sans mb-3">
-                Step 1 of 1
-              </span>
-              <h2 className="text-2xl font-extrabold text-white tracking-tight font-sans">
-                Create your account
-              </h2>
-              <p className="mt-1 text-xs text-brand-textMuted font-sans">
-                Elevate your career with AI-driven insights.
-              </p>
-            </div>
+
 
             {/* Error Message */}
             {error && (
@@ -303,13 +278,7 @@ export default function SignUpPage({ onSuccess, onSignInClick }: SignUpPageProps
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="mt-auto w-full text-center py-4 select-none border-t border-white/5">
-        <p className="text-[9px] text-brand-textMuted font-sans">
-          &copy; 2026 ResumeAI. All rights reserved.
-        </p>
-      </footer>
     </div>
+
   )
 }
