@@ -17,7 +17,7 @@ export default function Footer() {
               </div>
             </div>
             <span className="font-sans text-lg font-bold tracking-tight text-white">
-              Carbon<span className="text-brand-lightBlue">AI</span>
+              Career<span className="text-brand-lightBlue">AI</span>
             </span>
           </div>
 
@@ -38,7 +38,7 @@ export default function Footer() {
 
         {/* Footer Copyright */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 text-xs text-brand-textMuted font-sans font-light">
-          <p>© {currentYear} CarbonAI Systems. All rights reserved.</p>
+          <p>© {currentYear} CareerAI Systems. All rights reserved.</p>
           <p className="flex items-center gap-1.5">
             Designed for career excellence
           </p>

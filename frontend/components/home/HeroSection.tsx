@@ -1,6 +1,10 @@
 import dashboardMockup from '../../src/assets/dashboard_mockup.png'
 
-export default function HeroSection() {
+interface HeroSectionProps {
+  onNavigate?: (view: 'landing' | 'analyze') => void
+}
+
+export default function HeroSection({ onNavigate }: HeroSectionProps) {
   return (
     <section className="relative overflow-hidden pt-20 pb-16 lg:pt-28 lg:pb-24 bg-brand-dark">
       {/* Background glow lighting */}
@@ -27,25 +31,25 @@ export default function HeroSection() {
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-          <a
-            href="#analyze"
+          <button
+            onClick={() => onNavigate?.('analyze')}
             className="flex w-full sm:w-auto items-center justify-center rounded-lg bg-brand-blue hover:bg-blue-700 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand-blue/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
           >
             Get Started &rarr;
-          </a>
-          <a
-            href="#demo"
+          </button>
+          <button
+            onClick={() => onNavigate?.('analyze')}
             className="flex w-full sm:w-auto items-center justify-center rounded-lg border border-white/10 bg-brand-dark hover:bg-white/5 px-8 py-3.5 text-sm font-bold text-white active:scale-[0.98] transition-all duration-200"
           >
             See it More
-          </a>
+          </button>
         </div>
 
         {/* Showcase Mockup */}
         <div className="relative mx-auto max-w-5xl rounded-2xl border border-white/10 bg-brand-card/40 p-2 backdrop-blur-sm shadow-2xl overflow-hidden">
           <img
             src={dashboardMockup}
-            alt="CarbonAI Dashboard mockup"
+            alt="CareerAI Dashboard mockup"
             className="w-full rounded-xl border border-white/5 object-cover object-center shadow-inner"
           />
         </div>
