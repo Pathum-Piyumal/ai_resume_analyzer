@@ -7,6 +7,7 @@ import Sidebar from '../components/Results/Sidebar'
 import Topbar from '../components/Results/Topbar'
 import SkillGapPage from './pages/SkillGapPage'
 import ImprovementsPage from './pages/ImprovementsPage'
+import HistoryPage, { HistoryRow } from './pages/HistoryPage'
 import { Sparkles, Activity } from 'lucide-react'
 
 export default function App() {
@@ -38,6 +39,16 @@ export default function App() {
     setAnalysisResult(null)
     setAppTab('analysis')
     setView('landing')
+  }
+
+  const handleViewAnalysis = (row: HistoryRow) => {
+    setAnalysisResult({
+      fileName: row.fileName,
+      score: row.score,
+      matched: row.matched,
+      missing: row.missing
+    })
+    setAppTab('analysis')
   }
 
   // 1. Marketing / Landing Page View
@@ -75,7 +86,9 @@ export default function App() {
                 ? 'Resume Analysis' 
                 : appTab === 'formatting'
                   ? 'Suggestions & Improvement'
-                  : appTab.charAt(0).toUpperCase() + appTab.slice(1)
+                  : appTab === 'history'
+                    ? 'History'
+                    : appTab.charAt(0).toUpperCase() + appTab.slice(1)
           } 
         />
 
@@ -83,7 +96,7 @@ export default function App() {
         <main className="flex-grow overflow-y-auto p-6 sm:p-8 space-y-6">
           <div className="max-w-5xl mx-auto">
             
-            {/* Tab: Resume Analysis */}
+            {/* Tab: Resume Analysis / New Analysis */}
             {appTab === 'analysis' && (
               analysisResult === null ? (
                 <AnalyzePage onComplete={handleAnalysisComplete} />
@@ -108,8 +121,16 @@ export default function App() {
               <ImprovementsPage />
             )}
 
+            {/* Tab: Analysis History list */}
+            {appTab === 'history' && (
+              <HistoryPage 
+                onViewAnalysis={handleViewAnalysis} 
+                onNewAnalysis={handleReset} 
+              />
+            )}
+
             {/* Tab: Placeholder pages for static presentation */}
-            {['dashboard', 'careerpath', 'savedjobs', 'settings', 'support', 'pro', 'competitors', 'history'].includes(appTab) && (
+            {['dashboard', 'careerpath', 'savedjobs', 'settings', 'support', 'pro', 'competitors'].includes(appTab) && (
               <div className="rounded-2xl border border-white/5 bg-brand-card/45 p-12 text-center max-w-xl mx-auto mt-12 space-y-6 backdrop-blur-md shadow-2xl relative overflow-hidden animate-fade-in">
                 {/* Background glow highlights */}
                 <div className="absolute top-1/2 left-1/2 -z-10 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-blue/10 blur-[60px] pointer-events-none" />
