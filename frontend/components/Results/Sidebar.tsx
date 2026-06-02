@@ -12,21 +12,28 @@ import {
   Zap,
   User,
   FileText,
-  Download
+  Download,
+  X
 } from 'lucide-react'
+
+import logoUrl from '../../src/assets/logo.svg'
 
 interface SidebarProps {
   mode?: 'global' | 'document'
   activeTab?: string
   onTabChange?: (tab: string) => void
   onSignOut?: () => void
+  onClose?: () => void
+  onLogoClick?: () => void
 }
 
 export default function Sidebar({ 
   mode = 'global',
   activeTab = 'dashboard', 
   onTabChange,
-  onSignOut 
+  onSignOut,
+  onClose,
+  onLogoClick
 }: SidebarProps) {
   
   // 1. Portal Navigation links for Global Admin/Overview Mode
@@ -60,22 +67,24 @@ export default function Sidebar({
         <>
           <div>
             {/* Brand Header */}
-            <div className="flex flex-col gap-1 mb-8">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-blue to-indigo-600 p-0.5 shadow-lg shadow-brand-blue/10">
-                  <div className="flex h-full w-full items-center justify-center rounded-[10px] bg-[#0A0D1A]">
-                    <BrainCircuit className="h-5 w-5 text-brand-lightBlue" />
-                  </div>
-                </div>
+            <div className="flex items-center justify-between gap-1 mb-8">
+              <button 
+                onClick={onLogoClick}
+                className="flex items-center gap-3 text-left group hover:opacity-90 transition-opacity"
+              >
+                <img src={logoUrl} alt="ResumeIQ Logo" className="h-10 w-auto object-contain drop-shadow-md" />
                 <div className="flex flex-col">
                   <span className="text-base font-bold tracking-tight text-white font-sans leading-none">
-                    Resume<span className="text-brand-lightBlue">AI</span>
+                    Resume<span className="text-brand-lightBlue">IQ</span>
                   </span>
                   <span className="text-[10px] text-brand-textMuted font-sans tracking-wide mt-1">
                     AI Career Intelligence
                   </span>
                 </div>
-              </div>
+              </button>
+              <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors" title="Close Sidebar">
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
             {/* Portal Navigation Links */}
@@ -157,18 +166,23 @@ export default function Sidebar({
         <>
           <div>
             {/* Document Card Header */}
-            <div className="rounded-xl border border-white/5 bg-[#121626]/80 p-4 mb-6 flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-brand-blue/10 text-brand-lightBlue shrink-0">
-                <FileText className="h-5 w-5" />
+            <div className="rounded-xl border border-white/5 bg-[#121626]/80 p-4 mb-6 flex items-center justify-between gap-3 relative">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2.5 rounded-xl bg-brand-blue/10 text-brand-lightBlue shrink-0">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <div className="text-left min-w-0">
+                  <p className="text-xs font-bold text-white truncate">
+                    Resume v2.1
+                  </p>
+                  <p className="text-[9px] text-brand-textMuted font-sans tracking-widest uppercase mt-0.5">
+                    Product Manager
+                  </p>
+                </div>
               </div>
-              <div className="text-left min-w-0">
-                <p className="text-xs font-bold text-white truncate">
-                  Resume v2.1
-                </p>
-                <p className="text-[9px] text-brand-textMuted font-sans tracking-widest uppercase mt-0.5">
-                  Product Manager
-                </p>
-              </div>
+              <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors shrink-0" title="Close Sidebar">
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
             {/* Document Review Submenu */}

@@ -219,7 +219,7 @@ export default function SkillGapPage() {
       {/* 4. Footer */}
       <footer className="w-full border-t border-white/5 pt-8 pb-4 flex flex-col sm:flex-row items-center justify-between gap-4">
         <p className="text-[10px] text-brand-textMuted font-sans">
-          ResumeAI &copy; 2026 ResumeAI Intelligence. All rights reserved.
+          ResumeIQ &copy; 2026 ResumeIQ Intelligence. All rights reserved.
         </p>
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-1.5 text-[10px] text-brand-textMuted font-sans">
           <a href="#privacy" className="hover:text-white transition-colors">Privacy Policy</a>
