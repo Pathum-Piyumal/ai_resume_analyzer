@@ -1,8 +1,15 @@
-import React from 'react'
 import MatchScoreCard from './MatchScoreCard'
 import SkillsCard from './SkillsCard'
 import MissingSkillsCard from './MissingSkillsCard'
-import { Sparkles, ArrowLeft, RefreshCw, FileCheck } from 'lucide-react'
+import { Sparkles, RefreshCw, FileCheck } from 'lucide-react'
+
+interface ResultsDashboardProps {
+  fileName: string
+  matchScore: number
+  matchedSkills: string[]
+  missingSkills: string[]
+  onReset: () => void
+}
 
 export default function ResultsDashboard({ 
   fileName = 'Resume.pdf', 
@@ -10,7 +17,7 @@ export default function ResultsDashboard({
   matchedSkills = [], 
   missingSkills = [],
   onReset 
-}) {
+}: ResultsDashboardProps) {
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-8 animate-fade-in">
       

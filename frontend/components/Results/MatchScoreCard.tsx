@@ -1,26 +1,29 @@
-import React from 'react'
-import { Award, CheckCircle } from 'lucide-react'
+import { Award } from 'lucide-react'
 
-export default function MatchScoreCard({ score = 78 }) {
+interface MatchScoreCardProps {
+  score: number
+}
+
+export default function MatchScoreCard({ score = 78 }: MatchScoreCardProps) {
   // SVG circular progress calculation
   const radius = 50
   const circumference = 2 * Math.PI * radius
   const strokeDashoffset = circumference - (score / 100) * circumference
 
   // Color mapping based on score
-  const getScoreColor = (num) => {
+  const getScoreColor = (num: number) => {
     if (num >= 85) return 'text-emerald-400 stroke-emerald-400'
     if (num >= 70) return 'text-brand-lightBlue stroke-brand-lightBlue'
     return 'text-amber-400 stroke-amber-400'
   }
 
-  const getScoreBg = (num) => {
+  const getScoreBg = (num: number) => {
     if (num >= 85) return 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
     if (num >= 70) return 'bg-brand-blue/10 border-brand-blue/20 text-brand-lightBlue'
     return 'bg-amber-500/10 border-amber-500/20 text-amber-300'
   }
 
-  const getVerdict = (num) => {
+  const getVerdict = (num: number) => {
     if (num >= 85) return 'Excellent Match'
     if (num >= 70) return 'Strong Match'
     return 'Moderate Match'

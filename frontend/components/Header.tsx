@@ -1,5 +1,3 @@
-import React from 'react'
-
 export default function Header() {
   return (
     <div className="text-center max-w-2xl mx-auto mb-10 mt-6">

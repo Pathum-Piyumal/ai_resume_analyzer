@@ -1,7 +1,12 @@
-import React from 'react'
 import { Sparkles, Loader2 } from 'lucide-react'
 
-export default function AnalyzeButton({ onClick, disabled, loading }) {
+interface AnalyzeButtonProps {
+  onClick: () => void
+  disabled: boolean
+  loading: boolean
+}
+
+export default function AnalyzeButton({ onClick, disabled, loading }: AnalyzeButtonProps) {
   return (
     <div className="w-full max-w-xl mx-auto mb-8">
       <button
