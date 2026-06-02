@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Sparkles, User, Mail, Lock, ArrowRight, CheckCircle2, Shield, Zap } from 'lucide-react'
 
 interface SignUpPageProps {
-  onSuccess: () => void
+  onSuccess: (type: 'job_seeker' | 'admin') => void
   onSignInClick: () => void
 }
 
@@ -14,6 +14,7 @@ export default function SignUpPage({ onSuccess, onSignInClick }: SignUpPageProps
   const [agreeToTerms, setAgreeToTerms] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [accountType, setAccountType] = useState<'job_seeker' | 'admin'>('job_seeker')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,7 +39,7 @@ export default function SignUpPage({ onSuccess, onSignInClick }: SignUpPageProps
     // Simulate API delay
     setTimeout(() => {
       setIsLoading(false)
-      onSuccess()
+      onSuccess(accountType)
     }, 1200)
   }
 
@@ -73,6 +74,34 @@ export default function SignUpPage({ onSuccess, onSignInClick }: SignUpPageProps
             {/* Form */}
             <form className="space-y-4" onSubmit={handleSubmit}>
               
+              {/* Account Type Selection */}
+              <div className="grid grid-cols-2 gap-3 mb-2">
+                <button
+                  type="button"
+                  onClick={() => setAccountType('job_seeker')}
+                  className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all border ${
+                    accountType === 'job_seeker' 
+                      ? 'bg-brand-blue/10 border-brand-blue/40 text-brand-lightBlue shadow-md shadow-brand-blue/10' 
+                      : 'bg-[#121626]/40 border-white/5 text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <User className="h-3.5 w-3.5" />
+                  Job Seeker
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAccountType('admin')}
+                  className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all border ${
+                    accountType === 'admin' 
+                      ? 'bg-brand-blue/10 border-brand-blue/40 text-brand-lightBlue shadow-md shadow-brand-blue/10' 
+                      : 'bg-[#121626]/40 border-white/5 text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Shield className="h-3.5 w-3.5" />
+                  Admin
+                </button>
+              </div>
+
               {/* Full Name */}
               <div>
                 <label htmlFor="fullname" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5 font-sans">
@@ -209,7 +238,7 @@ export default function SignUpPage({ onSuccess, onSignInClick }: SignUpPageProps
 
               <div className="mt-4">
                 <button
-                  onClick={onSuccess}
+                  onClick={() => onSuccess(accountType)}
                   className="w-full flex items-center justify-center gap-2 py-3 border border-white/10 hover:border-white/20 bg-[#121626]/80 rounded-xl hover:bg-slate-800/30 text-xs font-bold text-slate-300 hover:text-white transition-all active:scale-[0.98]"
                   type="button"
                 >
