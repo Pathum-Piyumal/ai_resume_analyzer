@@ -1,39 +1,36 @@
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
 
 interface SkillsCardProps {
   skills?: string[]
 }
 
 export default function SkillsCard({ skills = [] }: SkillsCardProps) {
-  const defaultSkills = ["React", "TypeScript", "Tailwind CSS", "RESTful APIs", "State Management", "Git & GitHub"]
+  const defaultSkills = ["Python", "React", "AWS", "Agile", "TypeScript", "PostgreSQL", "Node.js"]
   const displaySkills = skills.length > 0 ? skills : defaultSkills
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-brand-card/60 p-6 backdrop-blur-md shadow-xl text-left h-full">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+    <div className="rounded-2xl border border-white/5 bg-brand-card/45 p-6 backdrop-blur-md shadow-xl text-left">
+      
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-4">
+        <CheckCircle className="h-4.5 w-4.5 text-emerald-400 shrink-0" />
+        <h3 className="text-sm font-bold text-white tracking-tight font-sans">
           Matched Skills
         </h3>
-        <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
-          {displaySkills.length} Found
-        </span>
       </div>
 
-      <p className="text-xs text-brand-textMuted mb-6 leading-relaxed">
-        Great news! The following high-priority skills were successfully identified in your resume:
-      </p>
-
-      <div className="grid grid-cols-2 gap-2.5">
+      {/* Tag pills wrap list */}
+      <div className="flex flex-wrap gap-2.5">
         {displaySkills.map((skill, index) => (
-          <div 
+          <span 
             key={index}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/5 border border-emerald-500/10 text-slate-200 hover:border-emerald-500/20 hover:bg-emerald-500/10 transition-all duration-200"
+            className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium bg-emerald-500/5 border border-emerald-500/15 text-emerald-400 select-none hover:border-emerald-500/30 transition-colors"
           >
-            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-            <span className="text-xs font-medium truncate">{skill}</span>
-          </div>
+            {skill}
+          </span>
         ))}
       </div>
+      
     </div>
   )
 }

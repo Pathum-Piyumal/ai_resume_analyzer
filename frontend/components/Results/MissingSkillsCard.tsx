@@ -1,49 +1,36 @@
-import { AlertCircle, Plus } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 
 interface MissingSkillsCardProps {
   skills?: string[]
 }
 
 export default function MissingSkillsCard({ skills = [] }: MissingSkillsCardProps) {
-  const defaultMissing = ["GraphQL", "Unit Testing (Jest)", "CI/CD Pipelines", "Next.js", "Docker"]
+  const defaultMissing = ["Docker", "GraphQL", "Kubernetes", "CI/CD Pipelines"]
   const displaySkills = skills.length > 0 ? skills : defaultMissing
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-brand-card/60 p-6 backdrop-blur-md shadow-xl text-left h-full">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-          Missing Keywords
+    <div className="rounded-2xl border border-white/5 bg-brand-card/45 p-6 backdrop-blur-md shadow-xl text-left">
+      
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-4">
+        <AlertTriangle className="h-4.5 w-4.5 text-rose-500 shrink-0" />
+        <h3 className="text-sm font-bold text-white tracking-tight font-sans">
+          Missing Skills
         </h3>
-        <span className="text-xs px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 font-semibold">
-          {displaySkills.length} Missing
-        </span>
       </div>
 
-      <p className="text-xs text-brand-textMuted mb-6 leading-relaxed">
-        We recommend integrating these key terms into your work history to bypass ATS filters:
-      </p>
-
-      <div className="grid grid-cols-2 gap-2.5 mb-6">
+      {/* Tag pills wrap list */}
+      <div className="flex flex-wrap gap-2.5">
         {displaySkills.map((skill, index) => (
-          <div 
+          <span 
             key={index}
-            className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-rose-500/5 border border-rose-500/10 text-slate-300 hover:border-rose-500/20 hover:bg-rose-500/10 transition-all duration-200"
+            className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium bg-rose-500/5 border border-rose-500/15 text-rose-400 select-none hover:border-rose-500/30 transition-colors"
           >
-            <div className="flex items-center gap-2 truncate">
-              <AlertCircle className="h-4 w-4 text-rose-400 shrink-0" />
-              <span className="text-xs font-medium truncate">{skill}</span>
-            </div>
-            <Plus className="h-3 w-3 text-brand-textMuted" />
-          </div>
+            {skill}
+          </span>
         ))}
       </div>
-
-      <div className="p-3 bg-brand-blue/5 rounded-xl border border-brand-blue/10 flex gap-2">
-        <span className="text-sm">💡</span>
-        <p className="text-[11px] text-slate-300 leading-normal font-sans font-light">
-          <strong>Tip:</strong> Avoid stuffing keywords. Describe your experiences using these terms naturally in your project descriptions and achievements.
-        </p>
-      </div>
+      
     </div>
   )
 }

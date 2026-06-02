@@ -15,7 +15,11 @@ const SKILLS_DICT = [
   "Agile", "Scrum", "Figma", "UI/UX Design", "Product Management"
 ]
 
-export default function AnalyzePage() {
+interface AnalyzePageProps {
+  onComplete?: (fileName: string, score: number, matched: string[], missing: string[]) => void
+}
+
+export default function AnalyzePage({ onComplete }: AnalyzePageProps) {
   const [view, setView] = useState<'input' | 'loading' | 'results'>('input')
   const [file, setFile] = useState<File | null>(null)
   const [jobText, setJobText] = useState<string>('')
@@ -29,7 +33,7 @@ export default function AnalyzePage() {
     score: number
     matched: string[]
     missing: string[]
-  }>({ score: 78, matched: [], missing: [] })
+  }>({ score: 82, matched: [], missing: [] })
 
   // Trigger analysis simulation
   const handleAnalyze = () => {
@@ -45,7 +49,7 @@ export default function AnalyzePage() {
 
     let matched: string[] = []
     let missing: string[] = []
-    let score = 78
+    let score = 82
 
     if (foundKeywords.length >= 3) {
       // Split found keywords to make it look realistic (60% matched, 40% missing)
@@ -58,9 +62,9 @@ export default function AnalyzePage() {
       score = Math.round(55 + ratio * 40) // scores between 55 and 95
     } else {
       // Fallback defaults
-      matched = ["React", "TypeScript", "Tailwind CSS", "RESTful APIs"]
-      missing = ["GraphQL", "Jest Testing", "CI/CD Pipelines"]
-      score = 76
+      matched = ["Python", "React", "AWS", "Agile", "TypeScript", "PostgreSQL", "Node.js"]
+      missing = ["Docker", "GraphQL", "Kubernetes", "CI/CD Pipelines"]
+      score = 82
     }
 
     setResultsData({ score, matched, missing })
@@ -91,7 +95,16 @@ export default function AnalyzePage() {
         if (next >= 100) {
           clearInterval(interval)
           setTimeout(() => {
-            setView('results')
+            if (onComplete) {
+              onComplete(
+                file?.name || 'resume_v2_final.pdf', 
+                resultsData.score, 
+                resultsData.matched, 
+                resultsData.missing
+              )
+            } else {
+              setView('results')
+            }
           }, 300)
           return 100
         }
@@ -100,7 +113,7 @@ export default function AnalyzePage() {
     }, 70)
 
     return () => clearInterval(interval)
-  }, [view])
+  }, [view, onComplete, file, resultsData])
 
   const handleReset = () => {
     setFile(null)
