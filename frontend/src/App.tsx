@@ -6,6 +6,7 @@ import ResultsDashboard from '../components/Results/ResultsDashboard'
 import Sidebar from '../components/Results/Sidebar'
 import Topbar from '../components/Results/Topbar'
 import SkillGapPage from './pages/SkillGapPage'
+import ImprovementsPage from './pages/ImprovementsPage'
 import { Sparkles, Activity } from 'lucide-react'
 
 export default function App() {
@@ -49,32 +50,37 @@ export default function App() {
   }
 
   // 2. High-fidelity Application Workspace Shell View
+  const isDocumentReview = analysisResult !== null
+
   return (
     <div className="flex h-screen w-full bg-[#060814] overflow-hidden text-slate-100 font-sans">
       
       {/* Sidebar Navigation */}
       <Sidebar 
+        mode={isDocumentReview ? 'document' : 'global'}
         activeTab={appTab} 
         onTabChange={setAppTab} 
         onSignOut={handleSignOut} 
       />
 
       {/* Main Workspace Frame */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#060814]">
+      <div className="flex-grow flex flex-col h-full overflow-hidden bg-[#060814]">
         
         {/* Topbar Utility */}
         <Topbar 
           title={
-            appTab === 'skillgap' 
+            appTab === 'skillgap' || appTab === 'keywords'
               ? 'Skill Gap Analysis' 
               : appTab === 'analysis' 
                 ? 'Resume Analysis' 
-                : appTab.charAt(0).toUpperCase() + appTab.slice(1)
+                : appTab === 'formatting'
+                  ? 'Suggestions & Improvement'
+                  : appTab.charAt(0).toUpperCase() + appTab.slice(1)
           } 
         />
 
         {/* Dynamic Inner Panel Viewport */}
-        <main className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6">
+        <main className="flex-grow overflow-y-auto p-6 sm:p-8 space-y-6">
           <div className="max-w-5xl mx-auto">
             
             {/* Tab: Resume Analysis */}
@@ -93,12 +99,17 @@ export default function App() {
             )}
 
             {/* Tab: Skill Gap Analysis */}
-            {appTab === 'skillgap' && (
+            {(appTab === 'skillgap' || appTab === 'keywords') && (
               <SkillGapPage />
             )}
 
+            {/* Tab: Suggestions & Improvements */}
+            {appTab === 'formatting' && (
+              <ImprovementsPage />
+            )}
+
             {/* Tab: Placeholder pages for static presentation */}
-            {['dashboard', 'careerpath', 'savedjobs', 'settings', 'support', 'pro'].includes(appTab) && (
+            {['dashboard', 'careerpath', 'savedjobs', 'settings', 'support', 'pro', 'competitors', 'history'].includes(appTab) && (
               <div className="rounded-2xl border border-white/5 bg-brand-card/45 p-12 text-center max-w-xl mx-auto mt-12 space-y-6 backdrop-blur-md shadow-2xl relative overflow-hidden animate-fade-in">
                 {/* Background glow highlights */}
                 <div className="absolute top-1/2 left-1/2 -z-10 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-blue/10 blur-[60px] pointer-events-none" />
