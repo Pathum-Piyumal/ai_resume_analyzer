@@ -1,10 +1,12 @@
 import { 
-  Home,
-  PlusCircle,
-  History,
-  Settings,
+  LayoutDashboard, 
+  BarChart3, 
+  Target,
+  Compass, 
+  Bookmark,
+  Clock,
   HelpCircle, 
-  LogOut,
+  Settings,
   BrainCircuit,
   Sliders,
   Zap,
@@ -22,17 +24,19 @@ interface SidebarProps {
 
 export default function Sidebar({ 
   mode = 'global',
-  activeTab = 'analysis', 
+  activeTab = 'dashboard', 
   onTabChange,
   onSignOut 
 }: SidebarProps) {
   
-  // 1. Portal Navigation links for Global Mode
+  // 1. Portal Navigation links for Global Admin/Overview Mode
   const globalLinks = [
-    { id: 'landing', name: 'Home', icon: Home },
-    { id: 'analysis', name: 'New Analysis', icon: PlusCircle },
-    { id: 'history', name: 'History', icon: History },
-    { id: 'settings', name: 'Settings', icon: Settings }
+    { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
+    { id: 'analysis', name: 'Resume Analysis', icon: BarChart3 },
+    { id: 'skillgap', name: 'Skill Gap', icon: Target },
+    { id: 'careerpath', name: 'Career Path', icon: Compass },
+    { id: 'savedjobs', name: 'Saved Jobs', icon: Bookmark },
+    { id: 'history', name: 'History', icon: Clock }
   ]
 
   // 2. Navigation links for Document review Mode
@@ -47,11 +51,6 @@ export default function Sidebar({
   const handleExportPDF = () => {
     window.print()
   }
-
-  // Circular user details parameters
-  const userName = 'Alex Reynolds'
-  const userPlan = 'Premium Plan'
-  const userAvatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop'
 
   return (
     <aside className="w-64 border-r border-white/5 bg-[#0A0D1A] flex flex-col justify-between p-6 h-screen shrink-0 sticky top-0 text-left font-sans z-25">
@@ -71,6 +70,9 @@ export default function Sidebar({
                 <div className="flex flex-col">
                   <span className="text-base font-bold tracking-tight text-white font-sans leading-none">
                     Resume<span className="text-brand-lightBlue">AI</span>
+                  </span>
+                  <span className="text-[10px] text-brand-textMuted font-sans tracking-wide mt-1">
+                    AI Career Intelligence
                   </span>
                 </div>
               </div>
@@ -99,16 +101,44 @@ export default function Sidebar({
             </nav>
           </div>
 
-          {/* Bottom Upgrade Banner and Profile actions */}
+          {/* Bottom Settings and Pro Plan Banner */}
           <div className="space-y-5">
-            {/* Upgrade to Pro Card Banner */}
+            
+            {/* Footer Settings & Help links */}
+            <div className="space-y-1">
+              <button
+                onClick={() => onTabChange?.('settings')}
+                className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                  activeTab === 'settings' 
+                    ? 'bg-slate-800/60 text-brand-lightBlue border border-white/5' 
+                    : 'text-brand-textMuted hover:text-slate-200 hover:bg-white/5'
+                }`}
+              >
+                <Settings className="h-4.5 w-4.5 text-brand-textMuted" />
+                <span>Settings</span>
+              </button>
+              
+              <button
+                onClick={() => onTabChange?.('support')}
+                className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                  activeTab === 'support' 
+                    ? 'bg-slate-800/60 text-brand-lightBlue border border-white/5' 
+                    : 'text-brand-textMuted hover:text-slate-200 hover:bg-white/5'
+                }`}
+              >
+                <HelpCircle className="h-4.5 w-4.5 text-brand-textMuted" />
+                <span>Help Center</span>
+              </button>
+            </div>
+
+            {/* Pro Plan Banner Card */}
             <div className="rounded-xl border border-white/5 bg-[#121626]/80 p-4 space-y-3">
               <div>
                 <h4 className="text-[10px] font-bold text-slate-300 font-sans tracking-wide mb-1">
-                  Upgrade to Pro
+                  Pro Plan
                 </h4>
                 <p className="text-[9px] text-brand-textMuted leading-normal font-sans font-light">
-                  Get unlimited scans and ATS optimization tips.
+                  Unlock advanced ATS Insights.
                 </p>
               </div>
               <button 
@@ -116,35 +146,10 @@ export default function Sidebar({
                 className="w-full py-2.5 rounded-xl bg-brand-blue hover:bg-blue-600 text-white font-bold text-[10px] shadow-lg shadow-brand-blue/15 transition-all duration-200 active:scale-[0.98]"
                 type="button"
               >
-                Upgrade Now
+                Upgrade to Pro
               </button>
             </div>
-
-            {/* User Profile display card */}
-            <div className="flex items-center gap-3 border-t border-white/5 pt-4">
-              <img
-                src={userAvatar}
-                alt="User profile avatar"
-                className="h-8.5 w-8.5 rounded-full border border-brand-blue/30"
-              />
-              <div className="text-left min-w-0 flex-grow">
-                <p className="text-xs font-bold text-white truncate leading-none mb-1">
-                  {userName}
-                </p>
-                <p className="text-[9px] text-brand-textMuted font-sans font-light">
-                  {userPlan}
-                </p>
-              </div>
-            </div>
-
-            {/* Logout Trigger */}
-            <button
-              onClick={onSignOut}
-              className="flex items-center gap-3.5 w-full px-4 py-2.5 rounded-xl text-xs font-semibold text-brand-textMuted hover:text-rose-400 hover:bg-rose-500/5 transition-all duration-200"
-            >
-              <LogOut className="h-4.5 w-4.5 text-brand-textMuted" />
-              <span>Logout</span>
-            </button>
+            
           </div>
         </>
       ) : (
@@ -232,7 +237,3 @@ export default function Sidebar({
     </aside>
   )
 }
-
-// Fallback declarations for document reviewer mode variables
-const Target = Sliders
-const Clock = History

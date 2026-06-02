@@ -8,11 +8,12 @@ import Topbar from '../components/Results/Topbar'
 import SkillGapPage from './pages/SkillGapPage'
 import ImprovementsPage from './pages/ImprovementsPage'
 import HistoryPage, { HistoryRow } from './pages/HistoryPage'
+import AdminDashboardPage from './pages/AdminDashboardPage'
 import { Sparkles, Activity } from 'lucide-react'
 
 export default function App() {
   const [view, setView] = useState<'landing' | 'app'>('landing')
-  const [appTab, setAppTab] = useState<string>('analysis')
+  const [appTab, setAppTab] = useState<string>('dashboard')
   const [analysisResult, setAnalysisResult] = useState<{
     fileName: string
     score: number
@@ -37,7 +38,7 @@ export default function App() {
 
   const handleSignOut = () => {
     setAnalysisResult(null)
-    setAppTab('analysis')
+    setAppTab('dashboard')
     setView('landing')
   }
 
@@ -88,7 +89,9 @@ export default function App() {
                   ? 'Suggestions & Improvement'
                   : appTab === 'history'
                     ? 'History'
-                    : appTab.charAt(0).toUpperCase() + appTab.slice(1)
+                    : appTab === 'dashboard'
+                      ? 'Overview'
+                      : appTab.charAt(0).toUpperCase() + appTab.slice(1)
           } 
         />
 
@@ -96,6 +99,11 @@ export default function App() {
         <main className="flex-grow overflow-y-auto p-6 sm:p-8 space-y-6">
           <div className="max-w-5xl mx-auto">
             
+            {/* Tab: Dashboard Overview */}
+            {appTab === 'dashboard' && (
+              <AdminDashboardPage onNewAnalysis={handleReset} />
+            )}
+
             {/* Tab: Resume Analysis / New Analysis */}
             {appTab === 'analysis' && (
               analysisResult === null ? (
@@ -130,7 +138,7 @@ export default function App() {
             )}
 
             {/* Tab: Placeholder pages for static presentation */}
-            {['dashboard', 'careerpath', 'savedjobs', 'settings', 'support', 'pro', 'competitors'].includes(appTab) && (
+            {['careerpath', 'savedjobs', 'settings', 'support', 'pro', 'competitors'].includes(appTab) && (
               <div className="rounded-2xl border border-white/5 bg-brand-card/45 p-12 text-center max-w-xl mx-auto mt-12 space-y-6 backdrop-blur-md shadow-2xl relative overflow-hidden animate-fade-in">
                 {/* Background glow highlights */}
                 <div className="absolute top-1/2 left-1/2 -z-10 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-blue/10 blur-[60px] pointer-events-none" />
