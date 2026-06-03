@@ -4,11 +4,282 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════════════════════════
+   DESIGN SYSTEM – CSS VARIABLES (RGB triplets for Tailwind opacity support)
+   ═══════════════════════════════════════════════════════════ */
+:root {
+  /* Dark defaults */
+  --brand-dark:         6, 8, 20;          /* #060814 */
+  --brand-card:         13, 17, 33;        /* #0D1121 */
+  --brand-text-primary: 248, 250, 252;     /* #F8FAFC */
+  --brand-text-muted:   100, 116, 139;     /* #64748B */
+  --brand-light-blue:   96, 165, 250;      /* #60A5FA */
+  --bg-grid-color:      rgba(255, 255, 255, 0.04);
+  --border-color:       rgba(255, 255, 255, 0.05);
+}
+
+.dark-mode {
+  --brand-dark:         6, 8, 20;
+  --brand-card:         13, 17, 33;
+  --brand-text-primary: 248, 250, 252;
+  --brand-text-muted:   100, 116, 139;
+  --brand-light-blue:   96, 165, 250;
+  --bg-grid-color:      rgba(255, 255, 255, 0.04);
+  --border-color:       rgba(255, 255, 255, 0.05);
+}
+
+/* Light palette – RGB triplets */
+.light-mode {
+  --brand-dark:         240, 244, 248;     /* #F0F4F8 */
+  --brand-card:         255, 255, 255;     /* #FFFFFF */
+  --brand-text-primary: 15, 23, 42;        /* #0F172A */
+  --brand-text-muted:   100, 116, 139;     /* #64748B */
+  --brand-light-blue:   29, 78, 216;       /* #1D4ED8 – darker blue visible on white */
+  --bg-grid-color:      rgba(15, 23, 42, 0.025);
+  --border-color:       rgba(15, 23, 42, 0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BASE
+   ═══════════════════════════════════════════════════════════ */
 @layer base {
-  body {
-    @apply bg-brand-dark text-brand-textPrimary font-sans antialiased selection:bg-brand-blue/30 selection:text-white;
-    background-color: #060814;
-    background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-    background-size: 24px 24px;
+  html {
+    transition: background-color 0.3s ease;
   }
+
+  body {
+    background-color: rgb(var(--brand-dark));
+    background-image: radial-gradient(var(--bg-grid-color) 1px, transparent 1px);
+    background-size: 24px 24px;
+    color: rgb(var(--brand-text-primary));
+    font-family: 'Outfit', 'Inter', 'system-ui', '-apple-system', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Smooth transitions on every element */
+  *, *::before, *::after {
+    transition:
+      background-color 0.25s ease,
+      border-color     0.25s ease,
+      color            0.2s  ease,
+      box-shadow       0.25s ease;
+  }
+
+  /* ── Scrollbar Dark ── */
+  ::-webkit-scrollbar            { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track      { background: transparent; }
+  ::-webkit-scrollbar-thumb      { background-color: rgba(255,255,255,0.10); border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover{ background-color: rgba(255,255,255,0.20); }
+  *                              { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.10) transparent; }
+
+  /* ── Scrollbar Light ── */
+  .light-mode ::-webkit-scrollbar-thumb      { background-color: rgba(15,23,42,0.13); }
+  .light-mode ::-webkit-scrollbar-thumb:hover{ background-color: rgba(15,23,42,0.25); }
+  .light-mode *                              { scrollbar-color: rgba(15,23,42,0.13) transparent; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE – HARDCODED HEX BACKGROUNDS
+   (bg-brand-* classes now work automatically via CSS variables;
+    only hardcoded hex utility classes need overrides here)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Very dark app shells → light grey */
+.light-mode .bg-\[\#060814\],
+.light-mode .bg-\[\#0A0D1A\],
+.light-mode .bg-\[\#080B16\],
+.light-mode .bg-\[\#04060E\],
+.light-mode .bg-\[\#060814\]\/85 {
+  background-color: #F0F4F8 !important;
+}
+
+/* Dark card backgrounds → white */
+.light-mode .bg-\[\#0D1121\],
+.light-mode .bg-\[\#0C0F1E\],
+.light-mode .bg-\[\#0C0F1E\]\/40,
+.light-mode .bg-\[\#0C0F1E\]\/80,
+.light-mode .bg-\[\#0c0f1e\],
+.light-mode .bg-\[\#0c0f1e\]\/80,
+.light-mode .bg-\[\#121626\],
+.light-mode .bg-\[\#121626\]\/20,
+.light-mode .bg-\[\#121626\]\/40,
+.light-mode .bg-\[\#121626\]\/50,
+.light-mode .bg-\[\#121626\]\/60,
+.light-mode .bg-\[\#121626\]\/80,
+.light-mode .bg-\[\#1D243F\],
+.light-mode .bg-\[\#0f1225\],
+.light-mode .bg-\[\#161b33\],
+.light-mode .bg-\[\#0A0D1A\]\/80 {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE – CATCH-ALL GLASSMORPHISM (backdrop-blur panels)
+   bg-brand-card/45 backdrop-blur-md → force white background
+   ═══════════════════════════════════════════════════════════ */
+.light-mode .backdrop-blur-md,
+.light-mode .backdrop-blur-sm,
+.light-mode .backdrop-blur-lg,
+.light-mode .backdrop-blur-xl {
+  background-color: rgba(255, 255, 255, 0.90) !important;
+  border-color: #E2E8F0 !important;
+}
+/* Navbar has its own correct background – don't override it */
+.light-mode nav.backdrop-blur-md {
+  background-color: rgba(255, 255, 255, 0.90) !important;
+  border-bottom-color: #E2E8F0 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE – SEMI-TRANSPARENT WHITES → subtle grey tints
+   ═══════════════════════════════════════════════════════════ */
+.light-mode .bg-white\/5  { background-color: rgba(15, 23, 42, 0.04) !important; }
+.light-mode .bg-white\/10 { background-color: rgba(15, 23, 42, 0.07) !important; }
+.light-mode .bg-white\/15 { background-color: rgba(15, 23, 42, 0.09) !important; }
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE – SLATE ICON CONTAINERS & PROGRESS TRACKS
+   ═══════════════════════════════════════════════════════════ */
+.light-mode .bg-slate-800,
+.light-mode .bg-slate-800\/60,
+.light-mode .bg-slate-800\/40,
+.light-mode .bg-slate-800\/30 {
+  background-color: #E2E8F0 !important;
+}
+.light-mode .bg-slate-900,
+.light-mode .bg-slate-900\/40,
+.light-mode .bg-slate-900\/50 {
+  background-color: #F1F5F9 !important;
+}
+.light-mode .bg-slate-700 {
+  background-color: #CBD5E1 !important;
+}
+/* Progress bar tracks */
+.light-mode .bg-slate-800.rounded-full,
+.light-mode [class*="bg-slate-800"][class*="rounded-full"] {
+  background-color: #E2E8F0 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE – BORDERS
+   ═══════════════════════════════════════════════════════════ */
+.light-mode .border-white\/5,
+.light-mode .border-white\/10,
+.light-mode .border-white\/20 {
+  border-color: #E2E8F0 !important;
+}
+.light-mode .divide-white\/5 > *,
+.light-mode .divide-white\/10 > * {
+  border-color: #E2E8F0 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE – TEXT COLOURS
+   ═══════════════════════════════════════════════════════════ */
+.light-mode .text-white      { color: #0F172A !important; }
+.light-mode .text-slate-100  { color: #1E293B !important; }
+.light-mode .text-slate-200  { color: #334155 !important; }
+.light-mode .text-slate-300  { color: #475569 !important; }
+.light-mode .text-slate-400  { color: #64748B !important; }
+.light-mode .text-slate-500  { color: #94A3B8 !important; }
+
+.light-mode .text-emerald-400  { color: #059669 !important; }
+.light-mode .text-amber-400    { color: #B45309 !important; }
+.light-mode .text-rose-400     { color: #BE123C !important; }
+.light-mode .text-purple-400   { color: #7C3AED !important; }
+.light-mode .text-violet-400   { color: #7C3AED !important; }
+.light-mode .text-cyan-400     { color: #0E7490 !important; }
+.light-mode .text-orange-400   { color: #C2410C !important; }
+.light-mode .text-blue-400     { color: #2563EB !important; }
+
+/* ── White text must stay white inside solid coloured buttons/badges ── */
+.light-mode .bg-brand-blue *,
+.light-mode button.bg-brand-blue,
+.light-mode button.bg-brand-blue *,
+.light-mode a.bg-brand-blue,
+.light-mode .bg-blue-600 *,
+.light-mode button.bg-blue-600,
+.light-mode button.bg-blue-600 *,
+.light-mode .bg-blue-700 *,
+.light-mode .bg-emerald-500,   .light-mode .bg-emerald-500 *,
+.light-mode .bg-emerald-600,   .light-mode .bg-emerald-600 *,
+.light-mode .bg-rose-500,      .light-mode .bg-rose-500 *,
+.light-mode .bg-rose-600,      .light-mode .bg-rose-600 *,
+.light-mode .bg-amber-500,     .light-mode .bg-amber-500 *,
+.light-mode .bg-amber-600,     .light-mode .bg-amber-600 * {
+  color: #FFFFFF !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE – COLOURED TINTED BADGES & CHIPS
+   ═══════════════════════════════════════════════════════════ */
+.light-mode .bg-emerald-500\/10,
+.light-mode .bg-emerald-500\/20,
+.light-mode .bg-emerald-500\/25 { background-color: #D1FAE5 !important; }
+.light-mode .bg-emerald-500\/6  { background-color: #ECFDF5 !important; }
+
+.light-mode .bg-rose-500\/10,
+.light-mode .bg-rose-500\/20   { background-color: #FFE4E6 !important; }
+
+.light-mode .bg-amber-500\/10,
+.light-mode .bg-amber-400\/10  { background-color: #FEF3C7 !important; }
+
+.light-mode .bg-purple-500\/10,
+.light-mode .bg-purple-400\/10,
+.light-mode .bg-violet-500\/10,
+.light-mode .bg-violet-600\/8  { background-color: #EDE9FE !important; }
+
+.light-mode .bg-cyan-500\/10   { background-color: #CFFAFE !important; }
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE – FORM INPUTS
+   ═══════════════════════════════════════════════════════════ */
+.light-mode input,
+.light-mode textarea,
+.light-mode select {
+  background-color: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+}
+.light-mode input::placeholder,
+.light-mode textarea::placeholder {
+  color: #94A3B8 !important;
+}
+.light-mode input:focus,
+.light-mode textarea:focus {
+  border-color: #2563EB !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+  background-color: #FFFFFF !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE – HOVER STATES
+   ═══════════════════════════════════════════════════════════ */
+.light-mode .hover\:bg-white\/5:hover   { background-color: rgba(15,23,42,0.04) !important; }
+.light-mode .hover\:bg-white\/10:hover  { background-color: rgba(15,23,42,0.07) !important; }
+.light-mode .hover\:border-white\/10:hover { border-color: #CBD5E1 !important; }
+.light-mode .hover\:border-white\/20:hover { border-color: #94A3B8 !important; }
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE – DARK GRADIENT BACKGROUNDS (CTA section etc.)
+   ═══════════════════════════════════════════════════════════ */
+.light-mode [class*="from-blue-950"] {
+  background: linear-gradient(to bottom right, #EFF6FF, #EEF2FF) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE – MODAL / OVERLAY BACKDROP
+   ═══════════════════════════════════════════════════════════ */
+.light-mode .bg-\[\#060814\]\/85 {
+  background-color: rgba(240, 244, 248, 0.90) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE – SIDEBAR
+   ═══════════════════════════════════════════════════════════ */
+.light-mode aside {
+  background-color: #FFFFFF !important;
+  border-right-color: #E2E8F0 !important;
 }
