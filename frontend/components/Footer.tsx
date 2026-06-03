@@ -16,7 +16,7 @@ export default function Footer({ onNavigate }: FooterProps) {
   }
 
   return (
-    <footer className="w-full border-t border-white/5 bg-[#04060E] py-12 transition-all duration-300">
+    <footer className="w-full border-t border-white/5 py-12 transition-all duration-300 bg-brand-card">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-white/5">
           
@@ -24,7 +24,7 @@ export default function Footer({ onNavigate }: FooterProps) {
           <div className="flex items-center gap-2">
             <a href="#" onClick={(e) => handleLinkClick(e, 'landing')} className="flex items-center gap-2 group">
               <img src={logoUrl} alt="ResumeIQ Logo" className="h-8 w-auto object-contain drop-shadow-md" />
-              <span className="font-sans text-lg font-bold tracking-tight text-white group-hover:text-brand-lightBlue transition-colors">
+              <span className="font-sans text-lg font-bold tracking-tight group-hover:text-brand-lightBlue transition-colors text-brand-textPrimary">
                 Resume<span className="text-brand-lightBlue group-hover:text-white transition-colors">IQ</span>
               </span>
             </a>
@@ -32,13 +32,13 @@ export default function Footer({ onNavigate }: FooterProps) {
 
           {/* Footer Links */}
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-brand-textMuted font-sans font-light">
-            <a href="#privacy" onClick={(e) => handleLinkClick(e, 'privacy')} className="hover:text-white transition-colors duration-200">
+            <a href="#privacy" onClick={(e) => handleLinkClick(e, 'privacy')} className="transition-colors duration-200 hover:text-brand-lightBlue">
               Privacy Policy
             </a>
-            <a href="#terms" onClick={(e) => handleLinkClick(e, 'terms')} className="hover:text-white transition-colors duration-200">
+            <a href="#terms" onClick={(e) => handleLinkClick(e, 'terms')} className="transition-colors duration-200 hover:text-brand-lightBlue">
               Terms of Service
             </a>
-            <a href="#support" onClick={(e) => handleLinkClick(e, 'support')} className="hover:text-white transition-colors duration-200">
+            <a href="#support" onClick={(e) => handleLinkClick(e, 'support')} className="transition-colors duration-200 hover:text-brand-lightBlue">
               Contact Support
             </a>
           </div>
