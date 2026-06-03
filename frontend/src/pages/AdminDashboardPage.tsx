@@ -10,12 +10,46 @@ import {
   Download,
   MoreVertical
 } from 'lucide-react'
+import { motion, Variants } from 'framer-motion'
+import NumberTicker from '../../components/NumberTicker'
 
 interface AdminDashboardPageProps {
   onNewAnalysis: () => void
 }
 
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08
+    }
+  }
+}
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 15 },
+  show: { 
+    opacity: 1, 
+    y: 0,
+    transition: { 
+      type: "spring", 
+      stiffness: 140, 
+      damping: 18 
+    } 
+  }
+}
+
 export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPageProps) {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget
+    const rect = card.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    card.style.setProperty('--mouse-x', `${x}px`)
+    card.style.setProperty('--mouse-y', `${y}px`)
+  }
+
   // Mock recent analyses database
   const recentAnalyses = [
     {
@@ -61,21 +95,41 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 animate-fade-in text-left relative min-h-[80vh]">
+    <motion.div 
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+      className="max-w-5xl mx-auto space-y-6 text-left relative min-h-[80vh]"
+    >
       
       {/* 1. Header Overview title */}
-      <div>
+      <motion.div variants={itemVariants}>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-sans">
           Overview
         </h1>
-      </div>
+      </motion.div>
 
       {/* 2. Top Summary Metrics Row (4 Cards) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <motion.div 
+        variants={containerVariants}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      >
         
         {/* Card 1: Total Users */}
-        <div className="rounded-2xl border border-white/5 bg-brand-card/45 p-5 backdrop-blur-md shadow-xl flex items-center justify-between relative overflow-hidden">
-          <div className="space-y-4 text-left">
+        <motion.div 
+          variants={itemVariants}
+          whileHover={{ y: -4, scale: 1.015, transition: { duration: 0.2 } }}
+          onMouseMove={handleMouseMove}
+          className="group rounded-2xl border border-white/5 bg-brand-card/45 p-5 backdrop-blur-md shadow-xl flex items-center justify-between relative overflow-hidden transition-colors hover:border-white/10"
+        >
+          {/* Mouse Spotlight */}
+          <div 
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+            style={{
+              background: 'radial-gradient(220px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(56, 189, 248, 0.07), transparent 80%)'
+            }}
+          />
+          <div className="space-y-4 text-left relative z-10">
             <div>
               <div className="flex items-center gap-1.5 mb-1 select-none">
                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-sans">
@@ -88,17 +142,29 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
               </div>
             </div>
             <p className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-none font-sans">
-              12,450
+              <NumberTicker value={12450} />
             </p>
           </div>
-          <div className="p-3 bg-slate-800 text-slate-400 rounded-xl shrink-0">
+          <div className="p-3 bg-slate-800 text-slate-400 rounded-xl shrink-0 relative z-10">
             <Users className="h-5 w-5" />
           </div>
-        </div>
+        </motion.div>
 
         {/* Card 2: Resumes Analyzed */}
-        <div className="rounded-2xl border border-white/5 bg-brand-card/45 p-5 backdrop-blur-md shadow-xl flex items-center justify-between relative overflow-hidden">
-          <div className="space-y-4 text-left">
+        <motion.div 
+          variants={itemVariants}
+          whileHover={{ y: -4, scale: 1.015, transition: { duration: 0.2 } }}
+          onMouseMove={handleMouseMove}
+          className="group rounded-2xl border border-white/5 bg-brand-card/45 p-5 backdrop-blur-md shadow-xl flex items-center justify-between relative overflow-hidden transition-colors hover:border-white/10"
+        >
+          {/* Mouse Spotlight */}
+          <div 
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+            style={{
+              background: 'radial-gradient(220px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(56, 189, 248, 0.07), transparent 80%)'
+            }}
+          />
+          <div className="space-y-4 text-left relative z-10">
             <div>
               <div className="flex items-center gap-1.5 mb-1 select-none">
                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-sans">
@@ -111,34 +177,58 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
               </div>
             </div>
             <p className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-none font-sans">
-              45,200
+              <NumberTicker value={45200} />
             </p>
           </div>
-          <div className="p-3 bg-slate-800 text-slate-400 rounded-xl shrink-0">
+          <div className="p-3 bg-slate-800 text-slate-400 rounded-xl shrink-0 relative z-10">
             <FileText className="h-5 w-5" />
           </div>
-        </div>
+        </motion.div>
 
         {/* Card 3: Avg Match Score */}
-        <div className="rounded-2xl border border-white/5 bg-brand-card/45 p-5 backdrop-blur-md shadow-xl flex items-center justify-between relative overflow-hidden">
-          <div className="space-y-4 text-left">
+        <motion.div 
+          variants={itemVariants}
+          whileHover={{ y: -4, scale: 1.015, transition: { duration: 0.2 } }}
+          onMouseMove={handleMouseMove}
+          className="group rounded-2xl border border-white/5 bg-brand-card/45 p-5 backdrop-blur-md shadow-xl flex items-center justify-between relative overflow-hidden transition-colors hover:border-white/10"
+        >
+          {/* Mouse Spotlight */}
+          <div 
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+            style={{
+              background: 'radial-gradient(220px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(56, 189, 248, 0.07), transparent 80%)'
+            }}
+          />
+          <div className="space-y-4 text-left relative z-10">
             <div>
               <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5 font-sans">
                 AVG MATCH SCORE
               </span>
             </div>
             <p className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-none font-sans">
-              68%
+              <NumberTicker value={68} suffix="%" />
             </p>
           </div>
-          <div className="p-3 bg-slate-800 text-slate-400 rounded-xl shrink-0">
+          <div className="p-3 bg-slate-800 text-slate-400 rounded-xl shrink-0 relative z-10">
             <Star className="h-5 w-5" />
           </div>
-        </div>
+        </motion.div>
 
         {/* Card 4: System Status */}
-        <div className="rounded-2xl border border-white/5 bg-brand-card/45 p-5 backdrop-blur-md shadow-xl flex items-center justify-between relative overflow-hidden">
-          <div className="space-y-4 text-left">
+        <motion.div 
+          variants={itemVariants}
+          whileHover={{ y: -4, scale: 1.015, transition: { duration: 0.2 } }}
+          onMouseMove={handleMouseMove}
+          className="group rounded-2xl border border-white/5 bg-brand-card/45 p-5 backdrop-blur-md shadow-xl flex items-center justify-between relative overflow-hidden transition-colors hover:border-white/10"
+        >
+          {/* Mouse Spotlight */}
+          <div 
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+            style={{
+              background: 'radial-gradient(220px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(16, 185, 129, 0.07), transparent 80%)'
+            }}
+          />
+          <div className="space-y-4 text-left relative z-10">
             <div>
               <div className="flex items-center gap-1.5 mb-1 select-none">
                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-sans">
@@ -152,19 +242,34 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
               ONLINE
             </p>
           </div>
-          <div className="p-3 bg-slate-800 text-slate-400 rounded-xl shrink-0">
+          <div className="p-3 bg-slate-800 text-slate-400 rounded-xl shrink-0 relative z-10">
             <Activity className="h-5 w-5 text-emerald-400" />
           </div>
-        </div>
+        </motion.div>
 
-      </div>
+      </motion.div>
 
       {/* 3. Mid Row Grid (Weekly Analysis Trends & AI Status) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <motion.div 
+        variants={containerVariants}
+        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+      >
         
         {/* Weekly Analysis Trends Card (Span 2) */}
-        <div className="lg:col-span-2 rounded-2xl border border-white/5 bg-brand-card/45 p-6 backdrop-blur-md shadow-xl space-y-6">
-          <div className="flex items-center justify-between">
+        <motion.div 
+          variants={itemVariants}
+          whileHover={{ y: -2, scale: 1.005, transition: { duration: 0.2 } }}
+          onMouseMove={handleMouseMove}
+          className="group lg:col-span-2 rounded-2xl border border-white/5 bg-brand-card/45 p-6 backdrop-blur-md shadow-xl space-y-6 transition-colors hover:border-white/10 relative overflow-hidden"
+        >
+          {/* Mouse Spotlight */}
+          <div 
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+            style={{
+              background: 'radial-gradient(350px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(56, 189, 248, 0.04), transparent 80%)'
+            }}
+          />
+          <div className="flex items-center justify-between relative z-10">
             <div>
               <h3 className="text-sm font-bold text-white tracking-tight font-sans mb-0.5">
                 Weekly Analysis Trends
@@ -183,7 +288,7 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
           </div>
 
           {/* SVG line area chart */}
-          <div className="h-44 flex items-center justify-center relative overflow-hidden pt-2">
+          <div className="h-44 flex items-center justify-center relative overflow-hidden pt-2 z-10">
             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:100%_24px] pointer-events-none" />
             
             <svg className="w-full h-full opacity-70 relative z-10" viewBox="0 0 500 120">
@@ -194,20 +299,26 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
                 </linearGradient>
               </defs>
               {/* Fill area */}
-              <path
+              <motion.path
                 d="M 20 100 Q 80 90 140 60 T 260 40 T 380 65 T 480 50 L 480 100 Z"
                 fill="url(#trendGlow)"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1.5, delay: 0.5 }}
               />
               {/* Horizontal grid guide */}
               <line x1="20" y1="100" x2="480" y2="100" className="stroke-white/10" strokeWidth="1" />
               
               {/* Curve chart */}
-              <path
+              <motion.path
                 d="M 20 100 Q 80 90 140 60 T 260 40 T 380 65 T 480 50"
                 fill="none"
                 className="stroke-brand-lightBlue"
                 strokeWidth="2.5"
                 strokeLinecap="round"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 1.4, ease: "easeOut", delay: 0.3 }}
               />
               
               {/* Pulsing focal nodes */}
@@ -217,7 +328,7 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
           </div>
 
           {/* X axis labels */}
-          <div className="flex justify-between px-3 text-[9px] text-brand-textMuted font-sans">
+          <div className="flex justify-between px-3 text-[9px] text-brand-textMuted font-sans relative z-10">
             <span>Mon</span>
             <span>Tue</span>
             <span>Wed</span>
@@ -226,48 +337,69 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
             <span>Sat</span>
             <span>Sun</span>
           </div>
-        </div>
+        </motion.div>
 
         {/* AI Status Monitoring Card (Span 1) */}
-        <div className="lg:col-span-1 rounded-2xl border border-white/5 bg-brand-card/45 p-6 backdrop-blur-md shadow-xl text-left flex flex-col justify-between space-y-6">
-          <div className="space-y-4">
+        <motion.div 
+          variants={itemVariants}
+          whileHover={{ y: -2, scale: 1.005, transition: { duration: 0.2 } }}
+          onMouseMove={handleMouseMove}
+          className="group lg:col-span-1 rounded-2xl border border-white/5 bg-brand-card/45 p-6 backdrop-blur-md shadow-xl text-left flex flex-col justify-between space-y-6 transition-colors hover:border-white/10 relative overflow-hidden"
+        >
+          {/* Mouse Spotlight */}
+          <div 
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+            style={{
+              background: 'radial-gradient(260px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(56, 189, 248, 0.05), transparent 80%)'
+            }}
+          />
+          <div className="space-y-4 relative z-10">
             <div className="flex items-center gap-1.5 text-xs font-bold text-white font-sans">
               <Cpu className="h-4.5 w-4.5 text-brand-lightBlue animate-pulse" />
               <span>AI Status</span>
             </div>
             
             <p className="text-[11px] text-brand-textMuted leading-relaxed font-sans font-light">
-              System performance is optimal. AI models processed <span className="text-white font-semibold">1,240</span> requests in the last hour with an average latency of <span className="text-brand-lightBlue font-mono">240ms</span>.
+              System performance is optimal. AI models processed <span className="text-white font-semibold"><NumberTicker value={1240} /></span> requests in the last hour with an average latency of <span className="text-brand-lightBlue font-mono"><NumberTicker value={240} suffix="ms" /></span>.
             </p>
           </div>
 
           {/* CPU monitoring progress bar */}
-          <div className="space-y-2 pt-2 border-t border-white/5">
+          <div className="space-y-2 pt-2 border-t border-white/5 relative z-10">
             <div className="flex items-center justify-between text-[10px] font-bold text-slate-300">
               <span className="font-sans">CPU Load</span>
-              <span className="font-mono text-brand-lightBlue">43%</span>
+              <span className="font-mono text-brand-lightBlue"><NumberTicker value={43} suffix="%" /></span>
             </div>
             <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden border border-white/5">
-              <div className="h-full bg-brand-lightBlue rounded-full shadow-lg" style={{ width: '43%' }} />
+              <motion.div 
+                className="h-full bg-brand-lightBlue rounded-full shadow-lg"
+                initial={{ width: 0 }}
+                animate={{ width: "43%" }}
+                transition={{ duration: 1, ease: "easeOut", delay: 0.5 }}
+              />
             </div>
           </div>
 
           {/* Button trigger */}
-          <div className="pt-2">
-            <button
-              className="w-full text-center rounded-xl border border-white/10 hover:border-white/20 bg-[#121626] hover:bg-slate-800/40 py-2.5 text-xs font-bold text-slate-300 hover:text-white transition-all active:scale-[0.98] flex items-center justify-center gap-1.5"
+          <div className="pt-2 relative z-10">
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              className="w-full text-center rounded-xl border border-white/10 hover:border-white/20 bg-[#121626] hover:bg-slate-800/40 py-2.5 text-xs font-bold text-slate-300 hover:text-white transition-all flex items-center justify-center gap-1.5"
               type="button"
             >
               <FileTerminal className="h-3.5 w-3.5 text-brand-lightBlue" />
               <span>View System Logs</span>
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
 
-      </div>
+      </motion.div>
 
       {/* 4. Bottom Table Card: Recent Analyses */}
-      <div className="rounded-2xl border border-white/5 bg-brand-card/45 p-6 backdrop-blur-md shadow-xl space-y-4">
+      <motion.div 
+        variants={itemVariants}
+        className="rounded-2xl border border-white/5 bg-brand-card/45 p-6 backdrop-blur-md shadow-xl space-y-4"
+      >
         
         {/* Table Header actions */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -275,13 +407,14 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
             Recent Analyses
           </h3>
           
-          <button
-            className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 hover:border-white/20 bg-[#121626] hover:bg-slate-800/40 px-4 py-2 text-xs font-bold text-slate-300 hover:text-white active:scale-[0.98] transition-all self-start sm:self-auto"
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 hover:border-white/20 bg-[#121626] hover:bg-slate-800/40 px-4 py-2 text-xs font-bold text-slate-300 hover:text-white transition-all self-start sm:self-auto"
             type="button"
           >
             <Download className="h-3.5 w-3.5" />
             <span>Export CSV</span>
-          </button>
+          </motion.button>
         </div>
 
         {/* Table Viewport */}
@@ -328,9 +461,11 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
                   <td className="py-3.5 pr-4">
                     <div className="flex items-center gap-3.5 w-40">
                       <div className="h-1.5 flex-grow bg-slate-800 rounded-full overflow-hidden border border-white/5">
-                        <div 
-                          className={`h-full rounded-full transition-all ${getScoreColor(row.score)}`} 
-                          style={{ width: `${row.score}%` }} 
+                        <motion.div 
+                          className={`h-full rounded-full ${getScoreColor(row.score)}`} 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${row.score}%` }}
+                          transition={{ duration: 1, ease: "easeOut", delay: 0.5 }}
                         />
                       </div>
                       <span className={`w-8 text-right ${getScoreText(row.score)}`}>
@@ -359,20 +494,27 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
           </table>
         </div>
 
-      </div>
+      </motion.div>
 
       {/* 5. Floating circular Plus button at bottom right */}
-      <div className="fixed bottom-6 right-6 z-45">
-        <button
+      <motion.div 
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.5, type: "spring", stiffness: 200, damping: 15 }}
+        className="fixed bottom-6 right-6 z-45"
+      >
+        <motion.button
           onClick={onNewAnalysis}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-blue hover:bg-blue-600 text-white shadow-xl shadow-brand-blue/30 active:scale-[0.98] hover:scale-105 transition-all"
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.93 }}
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-blue hover:bg-blue-600 text-white shadow-xl shadow-brand-blue/30 transition-shadow duration-200"
           title="New Analysis"
           type="button"
         >
           <Plus className="h-6 w-6 text-white" />
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
-    </div>
+    </motion.div>
   )
 }
