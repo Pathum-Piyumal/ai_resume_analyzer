@@ -22,7 +22,8 @@ def preprocess_text(text: str) -> str:
 
     text = text.replace('\n', ' ').replace('\t', ' ')
 
-    text = re.sub(r'[^\w\s\+#]', ' ', text)
+    # Keep alphanumeric, spaces, +, #, /, -, and .
+    text = re.sub(r'[^\w\s\+#/\-\.]', ' ', text)
 
     text = re.sub(r'\s+', ' ', text)
     
