@@ -4,19 +4,20 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
-    "./**/*.{js,ts,jsx,tsx}", // Broad scan for safety
-    "!./node_modules/**",     // Exclude node modules
+    "./**/*.{js,ts,jsx,tsx}",
+    "!./node_modules/**",
   ],
   theme: {
     extend: {
       colors: {
         brand: {
-          dark: '#060814',
-          card: '#0D1121',
-          blue: '#2563EB',
-          lightBlue: '#60A5FA',
-          textPrimary: '#F8FAFC',
-          textMuted: '#64748B',
+          // Using rgba(var(...), <alpha-value>) so Tailwind opacity modifiers work with comma-separated RGB triplets.
+          dark:        'rgba(var(--brand-dark), <alpha-value>)',
+          card:        'rgba(var(--brand-card), <alpha-value>)',
+          blue:        '#2563EB',
+          lightBlue:   'rgba(var(--brand-light-blue), <alpha-value>)',
+          textPrimary: 'rgba(var(--brand-text-primary), <alpha-value>)',
+          textMuted:   'rgba(var(--brand-text-muted), <alpha-value>)',
         }
       },
       fontFamily: {

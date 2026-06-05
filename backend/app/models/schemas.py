@@ -1,20 +1,30 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Dict, Any
 
-# BaseModel comes from Pydantic — it auto-validates data types
+class BulletPointImprovement(BaseModel):
+    before: str
+    after: str
+
+class CourseLink(BaseModel):
+    platform: str
+    skill: str
+    title: str
+    url: str
+
+class JobLink(BaseModel):
+    platform: str
+    skill: str
+    title: str
+    url: str
 
 class AnalysisResult(BaseModel):
-    
-    match_score: float         
-    jd_skills: List[str]       
-    missing_skills: List[str]  
-    resume_text_preview: str   
-    """
-    This is the exact shape of data our API will return.
-    Pydantic will raise an error if any field is missing or wrong type.
-    """
-    match_score: float          
-    resume_skills: List[str]    
-    jd_skills: List[str]        
-    missing_skills: List[str]   
-    resume_text_preview: str    
+    match_score: float
+    resume_skills: List[str]
+    jd_skills: List[str]
+    missing_skills: List[str]
+    formatting_issues: List[str]
+    bullet_points_improvements: List[BulletPointImprovement]
+    career_suggestions: List[str]
+    courses: List[CourseLink]
+    jobs: List[JobLink]
+    resume_text_preview: str

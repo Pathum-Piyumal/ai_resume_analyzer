@@ -1,12 +1,55 @@
 import { User, Bell, Shield, CreditCard, Save, Upload, Camera } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { api } from '../utils/api'
 
 interface SettingsPageProps {
   onUpgradeClick?: () => void
+  theme?: 'dark' | 'light'
+  onThemeChange?: (newTheme: 'dark' | 'light') => void
 }
 
-export default function SettingsPage({ onUpgradeClick }: SettingsPageProps) {
+export default function SettingsPage({ onUpgradeClick, theme = 'dark', onThemeChange }: SettingsPageProps) {
   const [activeTab, setActiveTab] = useState<'profile' | 'notifications' | 'billing'>('profile')
+  const [userEmail, setUserEmail] = useState('')
+  const [emailNotifications, setEmailNotifications] = useState(true)
+  const [firstName, setFirstName] = useState('Job')
+  const [lastName, setLastName] = useState('Seeker')
+  const [jobTitle, setJobTitle] = useState('Software Engineer')
+  const [isLoading, setIsLoading] = useState(true)
+
+  // 1. Load settings & profile on mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const user = await api.getMe()
+        setUserEmail(user.email)
+        
+        const settings = await api.getSettings()
+        setEmailNotifications(settings.email_notifications)
+        if (onThemeChange) {
+          onThemeChange(settings.theme)
+        }
+      } catch (err) {
+        console.error("Failed to load settings data", err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadData()
+  }, [])
+
+  const handleSaveSettings = async () => {
+    try {
+      await api.updateSettings({
+        theme: theme,
+        email_notifications: emailNotifications
+      })
+      alert("Settings saved successfully!")
+    } catch (err) {
+      console.error("Failed to save settings", err)
+      alert("Failed to save settings. Please try again.")
+    }
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-fade-in text-left">
@@ -89,27 +132,50 @@ export default function SettingsPage({ onUpgradeClick }: SettingsPageProps) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">First Name</label>
-                    <input type="text" defaultValue="Alex" className="w-full bg-[#121626]/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 outline-none transition-all" />
+                    <input 
+                      type="text" 
+                      value={firstName} 
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="w-full bg-[#121626]/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 outline-none transition-all" 
+                    />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Last Name</label>
-                    <input type="text" defaultValue="Reynolds" className="w-full bg-[#121626]/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 outline-none transition-all" />
+                    <input 
+                      type="text" 
+                      value={lastName} 
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="w-full bg-[#121626]/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 outline-none transition-all" 
+                    />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Email Address</label>
-                  <input type="email" defaultValue="alex@company.com" className="w-full bg-[#121626]/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-400 cursor-not-allowed outline-none" disabled />
+                  <input 
+                    type="email" 
+                    value={userEmail} 
+                    className="w-full bg-[#121626]/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-400 cursor-not-allowed outline-none" 
+                    disabled 
+                  />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Job Title</label>
-                  <input type="text" defaultValue="Frontend Developer" className="w-full bg-[#121626]/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 outline-none transition-all" />
+                  <input 
+                    type="text" 
+                    value={jobTitle} 
+                    onChange={(e) => setJobTitle(e.target.value)}
+                    className="w-full bg-[#121626]/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 outline-none transition-all" 
+                  />
                 </div>
               </div>
 
               <div className="pt-4 border-t border-white/5 flex justify-end">
-                <button className="flex items-center gap-2 rounded-xl bg-brand-blue hover:bg-blue-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-brand-blue/15 transition-all active:scale-[0.98]">
+                <button 
+                  onClick={handleSaveSettings}
+                  className="flex items-center gap-2 rounded-xl bg-brand-blue hover:bg-blue-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-brand-blue/15 transition-all active:scale-[0.98]"
+                >
                   <Save className="h-4 w-4" />
                   Save Changes
                 </button>
@@ -137,11 +203,26 @@ export default function SettingsPage({ onUpgradeClick }: SettingsPageProps) {
                       <p className="text-xs text-brand-textMuted mt-1">{item.desc}</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" defaultChecked={idx < 2} className="sr-only peer" />
+                      <input 
+                        type="checkbox" 
+                        checked={idx === 0 ? emailNotifications : true} 
+                        onChange={() => idx === 0 ? setEmailNotifications(!emailNotifications) : null}
+                        className="sr-only peer" 
+                      />
                       <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-blue"></div>
                     </label>
                   </div>
                 ))}
+              </div>
+              
+              <div className="pt-4 border-t border-white/5 flex justify-end">
+                <button 
+                  onClick={handleSaveSettings}
+                  className="flex items-center gap-2 rounded-xl bg-brand-blue hover:bg-blue-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-brand-blue/15 transition-all active:scale-[0.98]"
+                >
+                  <Save className="h-4 w-4" />
+                  Save Preferences
+                </button>
               </div>
             </div>
           )}

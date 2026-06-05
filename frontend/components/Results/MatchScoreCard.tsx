@@ -26,10 +26,10 @@ export default function MatchScoreCard({
     // Generate dummy report download trigger
     const element = document.createElement("a");
     const file = new Blob([
-      `CareerAI Resume Optimization Report\nRole: ${roleName}\nATS Compatibility Match: ${score}%\nGenerated on: ${new Date().toLocaleDateString()}`
+      `ResumeIQ Resume Optimization Report\nRole: ${roleName}\nATS Compatibility Match: ${score}%\nGenerated on: ${new Date().toLocaleDateString()}`
     ], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
-    element.download = `CareerAI_Report_${roleName.replace(/\s+/g, "_")}.txt`;
+    element.download = `ResumeIQ_Report_${roleName.replace(/\s+/g, "_")}.txt`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);

@@ -1,6 +1,7 @@
 import HeroSection from '../../../components/home/HeroSection'
 import StatsBar from '../../../components/home/StatsBar'
 import FeaturesSection from '../../../components/home/FeaturesSection'
+import PricingSection from '../../../components/home/PricingSection'
 import CTASection from '../../../components/home/CTASection'
 
 interface HomePageProps {
@@ -13,6 +14,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
       <HeroSection onNavigate={onNavigate} />
       <StatsBar />
       <FeaturesSection />
+      <PricingSection onNavigate={onNavigate as any} />
       <CTASection onNavigate={onNavigate} />
     </div>
   )

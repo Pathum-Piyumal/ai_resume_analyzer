@@ -5,18 +5,10 @@ import JobDescription from '../../components/JobDescription'
 import AnalyzeButton from '../../components/AnalyzeButton'
 import ResultsDashboard from '../../components/Results/ResultsDashboard'
 import { BrainCircuit } from 'lucide-react'
-
-// Lightweight skills dictionary to scan job description
-const SKILLS_DICT = [
-  "React", "TypeScript", "JavaScript", "Python", "Node.js", 
-  "HTML5", "CSS3", "Tailwind CSS", "SQL", "PostgreSQL", 
-  "Docker", "Kubernetes", "AWS", "CI/CD", "Jest", "Cypress", 
-  "GraphQL", "RESTful APIs", "Next.js", "Redux", "Git", 
-  "Agile", "Scrum", "Figma", "UI/UX Design", "Product Management"
-]
+import { api, AnalysisResult } from '../utils/api'
 
 interface AnalyzePageProps {
-  onComplete?: (fileName: string, score: number, matched: string[], missing: string[]) => void
+  onComplete?: (fileName: string, result: AnalysisResult) => void
 }
 
 export default function AnalyzePage({ onComplete }: AnalyzePageProps) {
@@ -27,52 +19,36 @@ export default function AnalyzePage({ onComplete }: AnalyzePageProps) {
   // Loading Simulation States
   const [loadingProgress, setLoadingProgress] = useState<number>(0)
   const [loadingStep, setLoadingStep] = useState<string>('')
+  const [error, setError] = useState<string>('')
+  const [apiResult, setApiResult] = useState<AnalysisResult | null>(null)
 
-  // Results State
-  const [resultsData, setResultsData] = useState<{
-    score: number
-    matched: string[]
-    missing: string[]
-  }>({ score: 82, matched: [], missing: [] })
-
-  // Trigger analysis simulation
-  const handleAnalyze = () => {
+  // Trigger real backend analysis
+  const handleAnalyze = async () => {
     if (!file || !jobText.trim()) return
 
-    // Dynamic Keyword matching engine
-    const textLower = jobText.toLowerCase()
-    
-    // Find all keywords mentioned in job description
-    const foundKeywords = SKILLS_DICT.filter(skill => 
-      textLower.includes(skill.toLowerCase())
-    )
-
-    let matched: string[] = []
-    let missing: string[] = []
-    let score = 82
-
-    if (foundKeywords.length >= 3) {
-      // Split found keywords to make it look realistic (60% matched, 40% missing)
-      const splitIndex = Math.ceil(foundKeywords.length * 0.6)
-      matched = foundKeywords.slice(0, splitIndex)
-      missing = foundKeywords.slice(splitIndex)
-      
-      // Calculate a score based on ratio
-      const ratio = matched.length / foundKeywords.length
-      score = Math.round(55 + ratio * 40) // scores between 55 and 95
-    } else {
-      // Fallback defaults
-      matched = ["Python", "React", "AWS", "Agile", "TypeScript", "PostgreSQL", "Node.js"]
-      missing = ["Docker", "GraphQL", "Kubernetes", "CI/CD Pipelines"]
-      score = 82
-    }
-
-    setResultsData({ score, matched, missing })
     setView('loading')
     setLoadingProgress(0)
+    setError('')
+    setApiResult(null)
+
+    try {
+      const result = await api.analyzeResume(file, jobText)
+      setApiResult(result)
+    } catch (err: any) {
+      setView('input')
+      let msg = 'An error occurred during resume analysis. Please try again.'
+      if (err.response) {
+        msg = err.response.data?.detail || msg
+      } else if (err.request) {
+        msg = 'Could not connect to the backend server. Please make sure the backend is running.'
+      } else {
+        msg = err.message || msg
+      }
+      setError(msg)
+    }
   }
 
-  // Simulating loading steps
+  // Simulating loading steps bound to API resolution
   useEffect(() => {
     if (view !== 'loading') return
 
@@ -86,40 +62,48 @@ export default function AnalyzePage({ onComplete }: AnalyzePageProps) {
 
     const interval = setInterval(() => {
       setLoadingProgress(prev => {
-        const next = prev + Math.floor(Math.random() * 4) + 1
+        let next = prev
         
+        if (!apiResult) {
+          // Keep ticking up to 90% while the API call is in progress
+          if (prev < 90) {
+            next = prev + Math.floor(Math.random() * 4) + 1
+            if (next > 90) next = 90
+          }
+        } else {
+          // Speed up to 100% once we have the result
+          next = prev + Math.floor(Math.random() * 12) + 5
+          if (next >= 100) {
+            next = 100
+            clearInterval(interval)
+            setTimeout(() => {
+              if (onComplete && file) {
+                onComplete(file.name, apiResult)
+              } else {
+                setView('results')
+              }
+            }, 300)
+          }
+        }
+
         // Find current step text
         const currentStep = steps.find(s => next <= s.max) || steps[steps.length - 1]
         setLoadingStep(currentStep.text)
 
-        if (next >= 100) {
-          clearInterval(interval)
-          setTimeout(() => {
-            if (onComplete) {
-              onComplete(
-                file?.name || 'resume_v2_final.pdf', 
-                resultsData.score, 
-                resultsData.matched, 
-                resultsData.missing
-              )
-            } else {
-              setView('results')
-            }
-          }, 300)
-          return 100
-        }
         return next
       })
-    }, 70)
+    }, 80)
 
     return () => clearInterval(interval)
-  }, [view, onComplete, file, resultsData])
+  }, [view, onComplete, file, apiResult])
 
   const handleReset = () => {
     setFile(null)
     setJobText('')
     setView('input')
     setLoadingProgress(0)
+    setApiResult(null)
+    setError('')
   }
 
   const isFormValid = file !== null && jobText.trim().length > 10
@@ -131,6 +115,11 @@ export default function AnalyzePage({ onComplete }: AnalyzePageProps) {
       {view === 'input' && (
         <div className="w-full px-4 animate-fade-in">
           <Header />
+          {error && (
+            <div className="max-w-xl mx-auto mb-4 p-3.5 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl font-sans font-light text-center">
+              {error}
+            </div>
+          )}
           <div className="max-w-xl mx-auto rounded-2xl border border-white/5 bg-brand-card/20 p-6 sm:p-8 backdrop-blur-md shadow-2xl relative overflow-hidden">
             {/* Spotlight blur */}
             <div className="absolute -top-24 -left-24 h-48 w-48 rounded-full bg-brand-blue/10 blur-[60px] pointer-events-none" />
@@ -179,12 +168,12 @@ export default function AnalyzePage({ onComplete }: AnalyzePageProps) {
       )}
 
       {/* 3. DASHBOARD VIEW */}
-      {view === 'results' && (
+      {view === 'results' && apiResult && (
         <ResultsDashboard
           fileName={file?.name || 'Resume.pdf'}
-          matchScore={resultsData.score}
-          matchedSkills={resultsData.matched}
-          missingSkills={resultsData.missing}
+          matchScore={apiResult.match_score}
+          matchedSkills={apiResult.resume_skills}
+          missingSkills={apiResult.missing_skills}
           onReset={handleReset}
         />
       )}

@@ -15,6 +15,7 @@ import {
   Download,
   X
 } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 import logoUrl from '../../src/assets/logo.svg'
 
@@ -25,6 +26,7 @@ interface SidebarProps {
   onSignOut?: () => void
   onClose?: () => void
   onLogoClick?: () => void
+  theme?: 'dark' | 'light'
 }
 
 export default function Sidebar({ 
@@ -33,7 +35,8 @@ export default function Sidebar({
   onTabChange,
   onSignOut,
   onClose,
-  onLogoClick
+  onLogoClick,
+  theme = 'dark'
 }: SidebarProps) {
   
   // 1. Portal Navigation links for Global Admin/Overview Mode
@@ -60,7 +63,11 @@ export default function Sidebar({
   }
 
   return (
-    <aside className="w-64 border-r border-white/5 bg-[#0A0D1A] flex flex-col justify-between p-6 h-screen shrink-0 sticky top-0 text-left font-sans z-25">
+    <aside className={`w-64 flex flex-col justify-between p-6 h-screen shrink-0 sticky top-0 text-left font-sans z-25 transition-colors duration-300 border-r ${
+      theme === 'light'
+        ? 'bg-white border-slate-200'
+        : 'bg-[#0A0D1A] border-white/5'
+    }`}>
       
       {/* GLOBAL MODE SHELL */}
       {mode === 'global' ? (
@@ -74,7 +81,7 @@ export default function Sidebar({
               >
                 <img src={logoUrl} alt="ResumeIQ Logo" className="h-10 w-auto object-contain drop-shadow-md" />
                 <div className="flex flex-col">
-                  <span className="text-base font-bold tracking-tight text-white font-sans leading-none">
+                  <span className={`text-base font-bold tracking-tight font-sans leading-none ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
                     Resume<span className="text-brand-lightBlue">IQ</span>
                   </span>
                   <span className="text-[10px] text-brand-textMuted font-sans tracking-wide mt-1">
@@ -82,13 +89,13 @@ export default function Sidebar({
                   </span>
                 </div>
               </button>
-              <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors" title="Close Sidebar">
+              <button onClick={onClose} className={`transition-colors ${theme === 'light' ? 'text-slate-400 hover:text-slate-700' : 'text-slate-400 hover:text-white'}`} title="Close Sidebar">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Portal Navigation Links */}
-            <nav className="space-y-1">
+            <nav className="space-y-1 relative">
               {globalLinks.map((link) => {
                 const Icon = link.icon
                 const isActive = activeTab === link.id
@@ -96,14 +103,27 @@ export default function Sidebar({
                   <button
                     key={link.id}
                     onClick={() => onTabChange?.(link.id)}
-                    className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 ${
+                    className={`relative flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition-colors duration-200 ${
                       isActive 
-                        ? 'bg-slate-800/60 text-brand-lightBlue border border-white/5 shadow-md shadow-brand-dark/20' 
-                        : 'text-brand-textMuted hover:text-slate-200 hover:bg-white/5'
+                        ? 'text-brand-lightBlue' 
+                        : theme === 'light'
+                          ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                          : 'text-brand-textMuted hover:text-slate-200 hover:bg-white/5'
                     }`}
                   >
-                    <Icon className={`h-4.5 w-4.5 shrink-0 ${isActive ? 'text-brand-lightBlue' : 'text-brand-textMuted'}`} />
-                    <span>{link.name}</span>
+                    {isActive && (
+                      <motion.div
+                        layoutId="globalActiveTabGlow"
+                        className={`absolute inset-0 rounded-xl -z-10 shadow-md ${
+                          theme === 'light'
+                            ? 'bg-blue-50 border border-blue-200'
+                            : 'bg-slate-800/60 border border-white/5 shadow-brand-dark/20'
+                        }`}
+                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    <Icon className={`h-4.5 w-4.5 shrink-0 relative z-10 ${isActive ? 'text-brand-lightBlue' : 'text-brand-textMuted'}`} />
+                    <span className="relative z-10">{link.name}</span>
                   </button>
                 )
               })}
@@ -117,46 +137,75 @@ export default function Sidebar({
             <div className="space-y-1">
               <button
                 onClick={() => onTabChange?.('settings')}
-                className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                className={`relative flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-xs font-semibold transition-colors duration-200 ${
                   activeTab === 'settings' 
-                    ? 'bg-slate-800/60 text-brand-lightBlue border border-white/5' 
-                    : 'text-brand-textMuted hover:text-slate-200 hover:bg-white/5'
+                    ? 'text-brand-lightBlue' 
+                    : theme === 'light'
+                      ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                      : 'text-brand-textMuted hover:text-slate-200 hover:bg-white/5'
                 }`}
               >
-                <Settings className="h-4.5 w-4.5 text-brand-textMuted" />
-                <span>Settings</span>
+                {activeTab === 'settings' && (
+                  <motion.div
+                    layoutId="globalActiveTabGlow"
+                    className={`absolute inset-0 rounded-xl -z-10 shadow-md ${
+                      theme === 'light'
+                        ? 'bg-blue-50 border border-blue-200'
+                        : 'bg-slate-800/60 border border-white/5 shadow-brand-dark/20'
+                    }`}
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <Settings className={`h-4.5 w-4.5 relative z-10 ${activeTab === 'settings' ? 'text-brand-lightBlue' : 'text-brand-textMuted'}`} />
+                <span className="relative z-10">Settings</span>
               </button>
               
               <button
                 onClick={() => onTabChange?.('support')}
-                className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                className={`relative flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-xs font-semibold transition-colors duration-200 ${
                   activeTab === 'support' 
-                    ? 'bg-slate-800/60 text-brand-lightBlue border border-white/5' 
-                    : 'text-brand-textMuted hover:text-slate-200 hover:bg-white/5'
+                    ? 'text-brand-lightBlue' 
+                    : theme === 'light'
+                      ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                      : 'text-brand-textMuted hover:text-slate-200 hover:bg-white/5'
                 }`}
               >
-                <HelpCircle className="h-4.5 w-4.5 text-brand-textMuted" />
-                <span>Help Center</span>
+                {activeTab === 'support' && (
+                  <motion.div
+                    layoutId="globalActiveTabGlow"
+                    className={`absolute inset-0 rounded-xl -z-10 shadow-md ${
+                      theme === 'light'
+                        ? 'bg-blue-50 border border-blue-200'
+                        : 'bg-slate-800/60 border border-white/5 shadow-brand-dark/20'
+                    }`}
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <HelpCircle className={`h-4.5 w-4.5 relative z-10 ${activeTab === 'support' ? 'text-brand-lightBlue' : 'text-brand-textMuted'}`} />
+                <span className="relative z-10">Help Center</span>
               </button>
             </div>
 
             {/* Pro Plan Banner Card */}
-            <div className="rounded-xl border border-white/5 bg-[#121626]/80 p-4 space-y-3">
+            <div className={`rounded-xl border p-4 space-y-3 ${
+              theme === 'light' ? 'border-slate-200 bg-slate-50' : 'border-white/5 bg-[#121626]/80'
+            }`}>
               <div>
-                <h4 className="text-[10px] font-bold text-slate-300 font-sans tracking-wide mb-1">
+                <h4 className={`text-[10px] font-bold font-sans tracking-wide mb-1 ${theme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>
                   Pro Plan
                 </h4>
                 <p className="text-[9px] text-brand-textMuted leading-normal font-sans font-light">
                   Unlock advanced ATS Insights.
                 </p>
               </div>
-              <button 
+              <motion.button 
                 onClick={() => onTabChange?.('pro')}
-                className="w-full py-2.5 rounded-xl bg-brand-blue hover:bg-blue-600 text-white font-bold text-[10px] shadow-lg shadow-brand-blue/15 transition-all duration-200 active:scale-[0.98]"
+                whileTap={{ scale: 0.97 }}
+                className="w-full py-2.5 rounded-xl bg-brand-blue hover:bg-blue-600 text-white font-bold text-[10px] shadow-lg shadow-brand-blue/15 transition-all duration-200"
                 type="button"
               >
                 Upgrade to Pro
-              </button>
+              </motion.button>
             </div>
             
           </div>
@@ -166,13 +215,15 @@ export default function Sidebar({
         <>
           <div>
             {/* Document Card Header */}
-            <div className="rounded-xl border border-white/5 bg-[#121626]/80 p-4 mb-6 flex items-center justify-between gap-3 relative">
+            <div className={`rounded-xl border p-4 mb-6 flex items-center justify-between gap-3 relative ${
+              theme === 'light' ? 'border-slate-200 bg-slate-50' : 'border-white/5 bg-[#121626]/80'
+            }`}>
               <div className="flex items-center gap-3 min-w-0">
                 <div className="p-2.5 rounded-xl bg-brand-blue/10 text-brand-lightBlue shrink-0">
                   <FileText className="h-5 w-5" />
                 </div>
                 <div className="text-left min-w-0">
-                  <p className="text-xs font-bold text-white truncate">
+                  <p className={`text-xs font-bold truncate ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
                     Resume v2.1
                   </p>
                   <p className="text-[9px] text-brand-textMuted font-sans tracking-widest uppercase mt-0.5">
@@ -180,13 +231,13 @@ export default function Sidebar({
                   </p>
                 </div>
               </div>
-              <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors shrink-0" title="Close Sidebar">
+              <button onClick={onClose} className={`transition-colors shrink-0 ${theme === 'light' ? 'text-slate-400 hover:text-slate-700' : 'text-slate-400 hover:text-white'}`} title="Close Sidebar">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Document Review Submenu */}
-            <nav className="space-y-1">
+            <nav className="space-y-1 relative">
               {documentLinks.map((link) => {
                 const Icon = link.icon
                 const isActive = activeTab === link.id
@@ -194,14 +245,27 @@ export default function Sidebar({
                   <button
                     key={link.id}
                     onClick={() => onTabChange?.(link.id)}
-                    className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 ${
+                    className={`relative flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition-colors duration-200 ${
                       isActive 
-                        ? 'bg-slate-800/60 text-brand-lightBlue border border-white/5 shadow-md shadow-brand-dark/20' 
-                        : 'text-brand-textMuted hover:text-slate-200 hover:bg-white/5'
+                        ? 'text-brand-lightBlue' 
+                        : theme === 'light'
+                          ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                          : 'text-brand-textMuted hover:text-slate-200 hover:bg-white/5'
                     }`}
                   >
-                    <Icon className={`h-4.5 w-4.5 shrink-0 ${isActive ? 'text-brand-lightBlue' : 'text-brand-textMuted'}`} />
-                    <span>{link.name}</span>
+                    {isActive && (
+                      <motion.div
+                        layoutId="documentActiveTabGlow"
+                        className={`absolute inset-0 rounded-xl -z-10 shadow-md ${
+                          theme === 'light'
+                            ? 'bg-blue-50 border border-blue-200'
+                            : 'bg-slate-800/60 border border-white/5 shadow-brand-dark/20'
+                        }`}
+                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    <Icon className={`h-4.5 w-4.5 shrink-0 relative z-10 ${isActive ? 'text-brand-lightBlue' : 'text-brand-textMuted'}`} />
+                    <span className="relative z-10">{link.name}</span>
                   </button>
                 )
               })}
@@ -213,32 +277,46 @@ export default function Sidebar({
             
             {/* Export PDF Button */}
             <div className="px-1">
-              <button 
+              <motion.button 
                 onClick={handleExportPDF}
-                className="w-full py-2.5 rounded-xl bg-brand-blue hover:bg-blue-600 text-white font-bold text-xs shadow-lg shadow-brand-blue/15 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2"
+                whileTap={{ scale: 0.97 }}
+                className="w-full py-2.5 rounded-xl bg-brand-blue hover:bg-blue-600 text-white font-bold text-xs shadow-lg shadow-brand-blue/15 transition-all duration-200 flex items-center justify-center gap-2"
                 type="button"
               >
                 <Download className="h-3.5 w-3.5" />
                 <span>Export PDF</span>
-              </button>
+              </motion.button>
             </div>
 
             {/* Footer Actions */}
-            <div className="space-y-1 border-t border-white/5 pt-4">
+            <div className={`space-y-1 border-t pt-4 ${theme === 'light' ? 'border-slate-200' : 'border-white/5'}`}>
               <button
                 onClick={() => onTabChange?.('support')}
-                className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                className={`relative flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-xs font-semibold transition-colors duration-200 ${
                   activeTab === 'support' 
-                    ? 'bg-slate-800/60 text-brand-lightBlue border border-white/5' 
-                    : 'text-brand-textMuted hover:text-slate-200 hover:bg-white/5'
+                    ? 'text-brand-lightBlue' 
+                    : theme === 'light'
+                      ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                      : 'text-brand-textMuted hover:text-slate-200 hover:bg-white/5'
                 }`}
               >
-                <HelpCircle className="h-4.5 w-4.5 text-brand-textMuted" />
-                <span>Support</span>
+                {activeTab === 'support' && (
+                  <motion.div
+                    layoutId="documentActiveTabGlow"
+                    className={`absolute inset-0 rounded-xl -z-10 ${
+                      theme === 'light' ? 'bg-blue-50 border border-blue-200' : 'bg-slate-800/60 border border-white/5'
+                    }`}
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <HelpCircle className={`h-4.5 w-4.5 relative z-10 ${activeTab === 'support' ? 'text-brand-lightBlue' : 'text-brand-textMuted'}`} />
+                <span className="relative z-10">Support</span>
               </button>
               <button
                 onClick={onSignOut}
-                className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-xs font-semibold text-brand-textMuted hover:text-slate-200 hover:bg-white/5 transition-all duration-200"
+                className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                  theme === 'light' ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100' : 'text-brand-textMuted hover:text-slate-200 hover:bg-white/5'
+                }`}
               >
                 <User className="h-4.5 w-4.5 text-brand-textMuted" />
                 <span>Account</span>
