@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { api, AnalysisResult } from './utils/api'
 import RootLayout from './layouts/RootLayout'
 import HomePage from './pages/public/HomePage'
 import AnalyzePage from './pages/AnalyzePage'
@@ -36,22 +37,50 @@ import {
   FileText
 } from 'lucide-react'
 
+export interface FullAnalysisResult extends AnalysisResult {
+  file_name: string
+  // For backwards compatibility:
+  fileName?: string
+  score?: number
+  matched?: string[]
+  missing?: string[]
+}
+
 export default function App() {
   const [view, setView] = useState<'landing' | 'signin' | 'signup' | 'forgot' | 'app' | 'privacy' | 'terms' | 'support'>('landing')
   const [appTab, setAppTab] = useState<string>('dashboard')
   const [userRole, setUserRole] = useState<'job_seeker' | 'admin'>('job_seeker')
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
-  const [analysisResult, setAnalysisResult] = useState<{
-    fileName: string
-    score: number
-    matched: string[]
-    missing: string[]
-  } | null>(null)
+  const [analysisResult, setAnalysisResult] = useState<FullAnalysisResult | null>(null)
 
   // ── Theme State ──────────────────────────────────────────────────────────
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     return (localStorage.getItem('resumeiq-theme') as 'dark' | 'light') ?? 'dark'
   })
+
+  // Check user session on app mount
+  useEffect(() => {
+    const checkSession = async () => {
+      const token = localStorage.getItem('resumeiq-auth-token')
+      if (token) {
+        try {
+          const user = await api.getMe()
+          setUserRole(user.role)
+          setView('app')
+          
+          // Try to sync with user setting preferred theme
+          const settings = await api.getSettings()
+          setTheme(settings.theme as 'dark' | 'light')
+        } catch (err) {
+          // Token expired or invalid
+          localStorage.removeItem('resumeiq-auth-token')
+          localStorage.removeItem('resumeiq-user-role')
+          setView('landing')
+        }
+      }
+    }
+    checkSession()
+  }, [])
 
   useEffect(() => {
     const root = document.documentElement
@@ -67,13 +96,29 @@ export default function App() {
 
   const handleToggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark')
 
+  const handleAuthSuccess = async (role: 'job_seeker' | 'admin' = 'job_seeker') => {
+    setUserRole(role)
+    setView('app')
+    try {
+      const settings = await api.getSettings()
+      setTheme(settings.theme as 'dark' | 'light')
+    } catch {
+      // Ignore setup fetch error on login
+    }
+  }
+
   const handleAnalysisComplete = (
     fileName: string, 
-    score: number, 
-    matched: string[], 
-    missing: string[]
+    result: AnalysisResult
   ) => {
-    setAnalysisResult({ fileName, score, matched, missing })
+    setAnalysisResult({
+      ...result,
+      file_name: fileName,
+      fileName: fileName,
+      score: result.match_score,
+      matched: result.resume_skills,
+      missing: result.missing_skills
+    })
     setAppTab('analysis')
   }
 
@@ -83,13 +128,22 @@ export default function App() {
   }
 
   const handleSignOut = () => {
+    localStorage.removeItem('resumeiq-auth-token')
+    localStorage.removeItem('resumeiq-user-role')
     setAnalysisResult(null)
     setAppTab('dashboard')
     setView('landing')
   }
 
   const handleViewAnalysis = (row: HistoryRow) => {
+    // HistoryRow will feed the parsed_data back
+    const result = typeof row.parsed_data === 'string' 
+      ? JSON.parse(row.parsed_data) 
+      : row.parsed_data
+
     setAnalysisResult({
+      ...result,
+      file_name: row.fileName,
       fileName: row.fileName,
       score: row.score,
       matched: row.matched,
@@ -144,7 +198,10 @@ export default function App() {
             className="w-full min-h-screen"
           >
             <SignInPage 
-              onSuccess={() => setView('app')}
+              onSuccess={() => {
+                const role = (localStorage.getItem('resumeiq-user-role') as 'job_seeker' | 'admin') || 'job_seeker'
+                handleAuthSuccess(role)
+              }}
               onSignUpClick={() => setView('signup')}
               onForgotClick={() => setView('forgot')}
             />
@@ -162,8 +219,7 @@ export default function App() {
           >
             <SignUpPage 
               onSuccess={(type) => {
-                setUserRole(type)
-                setView('app')
+                handleAuthSuccess(type)
               }}
               onSignInClick={() => setView('signin')}
             />
@@ -317,12 +373,12 @@ export default function App() {
 
                       {/* Tab: Skill Gap Analysis */}
                       {(appTab === 'skillgap' || appTab === 'keywords') && (
-                        <SkillGapPage />
+                        <SkillGapPage analysisResult={analysisResult} />
                       )}
 
                       {/* Tab: Suggestions & Improvements */}
                       {appTab === 'formatting' && (
-                        <ImprovementsPage />
+                        <ImprovementsPage analysisResult={analysisResult} />
                       )}
 
                       {/* Tab: Analysis History list */}
@@ -340,12 +396,16 @@ export default function App() {
 
                       {/* Tab: Saved Jobs */}
                       {appTab === 'savedjobs' && (
-                        <SavedJobsPage />
+                        <SavedJobsPage analysisResult={analysisResult} />
                       )}
 
                       {/* Tab: Settings */}
                       {appTab === 'settings' && (
-                        <SettingsPage onUpgradeClick={() => setAppTab('pro')} />
+                        <SettingsPage 
+                          onUpgradeClick={() => setAppTab('pro')} 
+                          theme={theme}
+                          onThemeChange={(newTheme) => setTheme(newTheme)}
+                        />
                       )}
 
                       {/* Tab: Support */}
