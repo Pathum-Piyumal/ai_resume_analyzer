@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Sparkles, Eye, EyeOff } from 'lucide-react'
+import { api } from '../../utils/api'
 
 interface SignInPageProps {
   onSuccess: () => void
@@ -12,16 +13,31 @@ export default function SignInPage({ onSuccess, onSignUpClick, onForgotClick }: 
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email || !password) return
     setIsLoading(true)
-    // Simulate API delay
-    setTimeout(() => {
+    setError('')
+    try {
+      const data = await api.login(email, password)
+      localStorage.setItem('resumeiq-auth-token', data.access_token)
+      localStorage.setItem('resumeiq-user-role', data.role)
       setIsLoading(false)
       onSuccess()
-    }, 1200)
+    } catch (err: any) {
+      setIsLoading(false)
+      let message = 'Login failed. Please try again.'
+      if (err.response) {
+        message = err.response.data?.detail || message
+      } else if (err.request) {
+        message = 'Could not connect to the backend server. Please make sure the backend is running.'
+      } else {
+        message = err.message || message
+      }
+      setError(message)
+    }
   }
 
   return (
@@ -40,6 +56,11 @@ export default function SignInPage({ onSuccess, onSignUpClick, onForgotClick }: 
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md z-10 px-4 sm:px-0">
         <div className="bg-brand-card/45 border border-white/5 py-8 px-6 sm:px-10 shadow-2xl rounded-2xl backdrop-blur-md">
+          {error && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl font-sans font-light">
+              {error}
+            </div>
+          )}
           <form className="space-y-5" onSubmit={handleSubmit}>
             {/* Email field */}
             <div>

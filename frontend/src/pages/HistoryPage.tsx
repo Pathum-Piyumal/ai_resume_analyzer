@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   FileText, 
   CheckCircle2, 
@@ -30,107 +30,84 @@ interface HistoryPageProps {
   onNewAnalysis: () => void
 }
 
+import { api } from '../utils/api'
+
+export interface HistoryRow {
+  id: string
+  jobTitle: string
+  date: string
+  score: number
+  fileName: string
+  matched: string[]
+  missing: string[]
+  iconType: 'code' | 'manager' | 'frontend'
+  parsed_data?: any
+}
+
+interface HistoryPageProps {
+  onViewAnalysis: (row: HistoryRow) => void
+  onNewAnalysis: () => void
+}
+
 export default function HistoryPage({ onViewAnalysis, onNewAnalysis }: HistoryPageProps) {
-  // Initialize mock history database with 9 items to support 3 pages of pagination
-  const [historyRows, setHistoryRows] = useState<HistoryRow[]>([
-    {
-      id: '1',
-      jobTitle: "Senior Software Engineer",
-      date: "Oct 24, 2024",
-      score: 82,
-      fileName: "resume_v2_final.pdf",
-      matched: ["Python", "React", "AWS", "Agile", "TypeScript", "PostgreSQL", "Node.js"],
-      missing: ["Docker", "GraphQL", "Kubernetes", "CI/CD Pipelines"],
-      iconType: 'code'
-    },
-    {
-      id: '2',
-      jobTitle: "Product Manager",
-      date: "Oct 15, 2024",
-      score: 65,
-      fileName: "pm_resume_draft.pdf",
-      matched: ["Agile", "Product Management", "Figma", "UI/UX Design", "SaaS Strategy"],
-      missing: ["RESTful APIs", "SQL", "Cloud Infrastructure"],
-      iconType: 'manager'
-    },
-    {
-      id: '3',
-      jobTitle: "Frontend Developer",
-      date: "Sep 28, 2024",
-      score: 45,
-      fileName: "junior_developer.pdf",
-      matched: ["HTML5", "CSS3", "JavaScript"],
-      missing: ["React", "TypeScript", "Redux", "Jest"],
-      iconType: 'frontend'
-    },
-    {
-      id: '4',
-      jobTitle: "Backend Software Engineer",
-      date: "Sep 12, 2024",
-      score: 88,
-      fileName: "backend_dev_resume.pdf",
-      matched: ["Python", "Django", "PostgreSQL", "Redis", "Docker", "AWS"],
-      missing: ["GraphQL", "Kubernetes", "CI/CD Pipelines"],
-      iconType: 'code'
-    },
-    {
-      id: '5',
-      jobTitle: "DevOps Engineer",
-      date: "Aug 30, 2024",
-      score: 79,
-      fileName: "devops_infrastructure.pdf",
-      matched: ["Terraform", "Docker", "Kubernetes", "AWS", "CI/CD Pipelines", "Linux"],
-      missing: ["Python", "Ansible", "Prometheus"],
-      iconType: 'code'
-    },
-    {
-      id: '6',
-      jobTitle: "Technical Project Lead",
-      date: "Aug 15, 2024",
-      score: 62,
-      fileName: "pm_tech_resume.pdf",
-      matched: ["Agile", "Scrum", "Jira", "System Design", "SaaS Architecture"],
-      missing: ["Cloud Infrastructure", "Kubernetes"],
-      iconType: 'manager'
-    },
-    {
-      id: '7',
-      jobTitle: "Mobile Developer (iOS)",
-      date: "Jul 22, 2024",
-      score: 70,
-      fileName: "ios_dev_swift.pdf",
-      matched: ["Swift", "UIKit", "SwiftUI", "CocoaPods", "Git"],
-      missing: ["Combine", "Unit Testing", "CI/CD"],
-      iconType: 'frontend'
-    },
-    {
-      id: '8',
-      jobTitle: "QA Automation Engineer",
-      date: "Jun 10, 2024",
-      score: 85,
-      fileName: "qa_automation_tester.pdf",
-      matched: ["JavaScript", "Cypress", "Selenium", "Jest", "Git"],
-      missing: ["CI/CD Pipelines", "Docker"],
-      iconType: 'code'
-    },
-    {
-      id: '9',
-      jobTitle: "Full Stack Developer",
-      date: "May 05, 2024",
-      score: 91,
-      fileName: "fullstack_engineer.pdf",
-      matched: ["React", "TypeScript", "Node.js", "Express", "MongoDB", "SQL"],
-      missing: ["Docker", "AWS", "WebSockets"],
-      iconType: 'code'
+  const [historyRows, setHistoryRows] = useState<HistoryRow[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  // 1. Fetch scan history on mount
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const summaries = await api.getScanHistory()
+        const rows = summaries.map((summary) => ({
+          id: String(summary.id),
+          jobTitle: summary.file_name.replace('.pdf', ''),
+          date: new Date(summary.scanned_at).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          }),
+          score: Math.round(summary.match_score),
+          fileName: summary.file_name,
+          matched: [],
+          missing: [],
+          iconType: 'code' as const
+        }))
+        setHistoryRows(rows)
+      } catch (err) {
+        console.error("Failed to load history list", err)
+      } finally {
+        setIsLoading(false)
+      }
     }
-  ])
+    fetchHistory()
+  }, [])
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState<number>(1)
   const itemsPerPage = 3
 
-  const handleDelete = (id: string, e: React.MouseEvent) => {
+  const handleRowClick = async (row: HistoryRow) => {
+    try {
+      const detail = await api.getScanDetail(Number(row.id))
+      const parsedData = typeof detail.parsed_data === 'string'
+        ? JSON.parse(detail.parsed_data)
+        : detail.parsed_data
+
+      onViewAnalysis({
+        ...row,
+        matched: parsedData.matched_skills || parsedData.matched || [],
+        missing: parsedData.missing_skills || parsedData.missing || [],
+        parsed_data: parsedData
+      })
+    } catch (err) {
+      console.error("Failed to load scan details", err)
+    }
+  }
+
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
+    // For now we don't have a DELETE scan endpoint on the backend, so we'll just filter locally.
+    // (If user requests delete endpoint on backend later, we can add it).
     const updatedRows = historyRows.filter(row => row.id !== id)
     setHistoryRows(updatedRows)
     
@@ -403,7 +380,7 @@ export default function HistoryPage({ onViewAnalysis, onNewAnalysis }: HistoryPa
                 {currentRows.map((row) => (
                   <tr 
                     key={row.id} 
-                    onClick={() => onViewAnalysis(row)}
+                    onClick={() => handleRowClick(row)}
                     className="group/row cursor-pointer hover:bg-white/5 transition-colors"
                   >
                     {/* Job Title Column */}
@@ -440,7 +417,7 @@ export default function HistoryPage({ onViewAnalysis, onNewAnalysis }: HistoryPa
                     <td className="py-4 text-right">
                       <div className="flex items-center justify-end gap-2.5">
                         <button
-                          onClick={(e) => { e.stopPropagation(); onViewAnalysis(row); }}
+                          onClick={(e) => { e.stopPropagation(); handleRowClick(row); }}
                           className="p-1.5 rounded-lg text-brand-textMuted hover:text-white hover:bg-white/10 transition-all focus:outline-none"
                           title="View report"
                           type="button"

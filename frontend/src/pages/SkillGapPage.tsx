@@ -1,4 +1,4 @@
-import { Award, Compass, Sparkles } from 'lucide-react'
+import { Award, Compass, Sparkles, ArrowUpRight } from 'lucide-react'
 import { motion, Variants } from 'framer-motion'
 import NumberTicker from '../../components/NumberTicker'
 
@@ -68,13 +68,47 @@ function GaugeWidget({ score, title, subtitle, onMouseMove }: GaugeWidgetProps) 
   )
 }
 
-export default function SkillGapPage() {
-  const skillGaps = [
-    { name: "React / Frontend", yourLevel: 90, required: 85, badge: "+5% Ahead", isAhead: true },
-    { name: "Python / Backend", yourLevel: 75, required: 85, badge: "-10% Gap", isAhead: false },
-    { name: "System Design", yourLevel: 70, required: 85, badge: "-15% Gap", isAhead: false },
-    { name: "Cloud (AWS/GCP)", yourLevel: 65, required: 85, badge: "-20% Gap", isAhead: false }
-  ]
+interface SkillGapPageProps {
+  analysisResult?: any
+}
+
+export default function SkillGapPage({ analysisResult }: SkillGapPageProps) {
+  const skillGaps = []
+
+  if (analysisResult) {
+    // Pull from real scan
+    const matched = analysisResult.resume_skills || []
+    const missing = analysisResult.missing_skills || []
+
+    matched.slice(0, 2).forEach((skill: string) => {
+      skillGaps.push({
+        name: skill.toUpperCase(),
+        yourLevel: 90,
+        required: 80,
+        badge: "Strength",
+        isAhead: true
+      })
+    })
+
+    missing.slice(0, 2).forEach((skill: string) => {
+      skillGaps.push({
+        name: skill.toUpperCase(),
+        yourLevel: 55,
+        required: 85,
+        badge: "Skill Gap",
+        isAhead: false
+      })
+    })
+  }
+
+  if (skillGaps.length === 0) {
+    skillGaps.push(
+      { name: "React / Frontend", yourLevel: 90, required: 85, badge: "+5% Ahead", isAhead: true },
+      { name: "Python / Backend", yourLevel: 75, required: 85, badge: "-10% Gap", isAhead: false },
+      { name: "System Design", yourLevel: 70, required: 85, badge: "-15% Gap", isAhead: false },
+      { name: "Cloud (AWS/GCP)", yourLevel: 65, required: 85, badge: "-20% Gap", isAhead: false }
+    )
+  }
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget
@@ -284,14 +318,36 @@ export default function SkillGapPage() {
               </div>
 
               {/* AI Recommendation Alert Sheet */}
-              <div className="p-3.5 bg-brand-blue/5 rounded-xl border border-brand-blue/10 space-y-1.5">
+              <div className="p-3.5 bg-brand-blue/5 rounded-xl border border-brand-blue/10 space-y-2.5">
                 <div className="flex items-center gap-1.5 text-brand-lightBlue font-bold text-xs">
                   <Sparkles className="h-3.5 w-3.5 animate-pulse" />
                   <span>AI Recommendation</span>
                 </div>
                 <p className="text-[10px] text-slate-300 leading-normal font-sans font-light">
-                  Focus on <span className="font-semibold text-white">System Design</span> and <span className="font-semibold text-white">Kubernetes</span> certification. These represent 60% of the missing criteria for your target role.
+                  {analysisResult?.career_suggestions?.[0] || (
+                    <>
+                      Focus on <span className="font-semibold text-white">System Design</span> and <span className="font-semibold text-white">Kubernetes</span> certification. These represent 60% of the missing criteria for your target role.
+                    </>
+                  )}
                 </p>
+
+                {analysisResult?.courses && analysisResult.courses.length > 0 && (
+                  <div className="space-y-1.5 pt-1.5 border-t border-white/5">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Improvement Courses</span>
+                    {analysisResult.courses.slice(0, 3).map((course: any, idx: number) => (
+                      <a 
+                        key={idx}
+                        href={course.url}
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between p-2 rounded bg-slate-900/60 hover:bg-slate-900 border border-white/5 text-[10px] text-white font-medium hover:text-brand-lightBlue transition-all"
+                      >
+                        <span>{course.platform}: Learn {course.skill}</span>
+                        <ArrowUpRight className="h-3.5 w-3.5 text-slate-400 hover:text-brand-lightBlue" />
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>

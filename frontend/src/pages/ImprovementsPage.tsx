@@ -32,38 +32,72 @@ function NeuralNetworkGraphic() {
   )
 }
 
-export default function ImprovementsPage() {
+interface ImprovementsPageProps {
+  analysisResult?: any
+}
+
+export default function ImprovementsPage({ analysisResult }: ImprovementsPageProps) {
   const [appliedCount, setAppliedCount] = useState<number>(0)
   const [appliedKeywords, setAppliedKeywords] = useState<string[]>([])
 
-  const recommendations = [
-    {
-      id: 1,
-      title: "Quantify Achievement",
-      tag: "HIGH PRIORITY",
-      tagColor: "bg-amber-500/10 border-amber-500/25 text-amber-400",
-      desc: "Your current experience section lacks concrete data. Adding metrics like 'Increased efficiency by 20%' significantly boosts ATS ranking.",
-      actionText: "Fix Now"
-    },
-    {
-      id: 2,
-      title: "Strengthen Verb Choice",
-      tag: "MEDIUM PRIORITY",
-      tagColor: "bg-brand-blue/10 border-brand-blue/20 text-brand-lightBlue",
-      desc: "Replace passive phrases like 'responsible for' with action verbs like 'spearheaded,' 'orchestrated,' or 'implemented.'",
-      actionText: "Review Suggestions"
-    },
-    {
-      id: 3,
-      title: "Education Formatting",
-      tag: "LOW PRIORITY",
-      tagColor: "bg-slate-800 border-white/5 text-slate-400",
-      desc: "Standardize the data format in your education section to match your professional experience for better visual flow.",
-      actionText: "Quick Align"
-    }
-  ]
+  const recommendations: any[] = []
 
-  const keywords = [
+  if (analysisResult) {
+    // 1. Add formatting issues
+    (analysisResult.formatting_issues || []).forEach((issue: string, idx: number) => {
+      recommendations.push({
+        id: idx + 1,
+        title: "Formatting & Style Optimization",
+        tag: "HIGH PRIORITY",
+        tagColor: "bg-rose-500/10 border-rose-500/20 text-rose-400",
+        desc: issue,
+        actionText: "Fix Layout"
+      })
+    });
+
+    // 2. Add bullet point recommendations
+    (analysisResult.bullet_points_improvements || []).forEach((bullet: any, idx: number) => {
+      recommendations.push({
+        id: idx + 100,
+        title: "Strengthen Bullet Point Achievement",
+        tag: "MEDIUM PRIORITY",
+        tagColor: "bg-brand-blue/10 border-brand-blue/20 text-brand-lightBlue",
+        desc: `Before: "${bullet.before}" | Proposed Rewrite: "${bullet.after}"`,
+        actionText: "Accept Rewrite"
+      })
+    })
+  }
+
+  if (recommendations.length === 0) {
+    recommendations.push(
+      {
+        id: 1,
+        title: "Quantify Achievement",
+        tag: "HIGH PRIORITY",
+        tagColor: "bg-amber-500/10 border-amber-500/25 text-amber-400",
+        desc: "Your experience section lacks concrete data. Adding metrics like 'Increased efficiency by 20%' significantly boosts ATS ranking.",
+        actionText: "Fix Now"
+      },
+      {
+        id: 2,
+        title: "Strengthen Verb Choice",
+        tag: "MEDIUM PRIORITY",
+        tagColor: "bg-brand-blue/10 border-brand-blue/20 text-brand-lightBlue",
+        desc: "Replace passive phrases like 'responsible for' with action verbs like 'spearheaded,' 'orchestrated,' or 'implemented.'",
+        actionText: "Review Suggestions"
+      },
+      {
+        id: 3,
+        title: "Education Formatting",
+        tag: "LOW PRIORITY",
+        tagColor: "bg-slate-800 border-white/5 text-slate-400",
+        desc: "Standardize the data format in your education section to match your professional experience for better visual flow.",
+        actionText: "Quick Align"
+      }
+    )
+  }
+
+  const keywords: string[] = analysisResult?.missing_skills || [
     "Cloud Infrastructure", "Agile Methodology", "Stakeholder Management", 
     "Cross-functional Leadership", "Data Visualization", "SaaS Strategy"
   ]
@@ -109,7 +143,8 @@ export default function ImprovementsPage() {
   }
 
   // Calculate circular projected progress
-  const score = 94
+  const currentScore = analysisResult ? Math.round(analysisResult.match_score) : 82
+  const score = analysisResult ? Math.min(currentScore + 10, 100) : 94
   const radius = 50
   const circumference = 2 * Math.PI * radius
   const strokeDashoffset = circumference - (score / 100) * circumference
@@ -350,7 +385,7 @@ export default function ImprovementsPage() {
                     CURRENT MATCH
                   </p>
                   <p className="text-sm font-extrabold text-slate-300 font-sans">
-                    <NumberTicker value={82} suffix="%" />
+                    <NumberTicker value={currentScore} suffix="%" />
                   </p>
                 </div>
                 <div className="text-center py-1">
@@ -358,7 +393,7 @@ export default function ImprovementsPage() {
                     POTENTIAL
                   </p>
                   <p className="text-sm font-extrabold text-emerald-400 font-sans">
-                    +12%
+                    +{score - currentScore}%
                   </p>
                 </div>
               </div>

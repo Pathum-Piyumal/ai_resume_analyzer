@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Sparkles, User, Mail, Lock, ArrowRight, CheckCircle2, Shield, Zap } from 'lucide-react'
+import { api } from '../../utils/api'
 
 interface SignUpPageProps {
   onSuccess: (type: 'job_seeker' | 'admin') => void
@@ -16,7 +17,7 @@ export default function SignUpPage({ onSuccess, onSignInClick }: SignUpPageProps
   const [error, setError] = useState('')
   const [accountType, setAccountType] = useState<'job_seeker' | 'admin'>('job_seeker')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
@@ -36,11 +37,29 @@ export default function SignUpPage({ onSuccess, onSignInClick }: SignUpPageProps
     }
 
     setIsLoading(true)
-    // Simulate API delay
-    setTimeout(() => {
+    try {
+      // 1. Call Register
+      await api.register(email, password)
+      
+      // 2. Call Login to get the token immediately
+      const tokenData = await api.login(email, password)
+      localStorage.setItem('resumeiq-auth-token', tokenData.access_token)
+      localStorage.setItem('resumeiq-user-role', tokenData.role)
+      
       setIsLoading(false)
       onSuccess(accountType)
-    }, 1200)
+    } catch (err: any) {
+      setIsLoading(false)
+      let message = 'Registration failed. Please try again.'
+      if (err.response) {
+        message = err.response.data?.detail || message
+      } else if (err.request) {
+        message = 'Could not connect to the backend server. Please make sure the backend is running.'
+      } else {
+        message = err.message || message
+      }
+      setError(message)
+    }
   }
 
   return (
