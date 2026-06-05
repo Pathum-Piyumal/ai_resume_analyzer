@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import Session, select, delete
 from pydantic import BaseModel
@@ -11,6 +11,7 @@ from google.auth.transport import requests as google_requests
 from app.db import get_session
 from app.models.models import User, UserSetting, PasswordResetToken
 from app.services.auth_utils import get_password_hash, verify_password, create_access_token, get_current_user
+from app.services.email_service import send_reset_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -110,7 +111,11 @@ def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 @router.post("/forgot-password")
-def forgot_password(req_data: ForgotPasswordRequest, db: Session = Depends(get_session)):
+def forgot_password(
+    req_data: ForgotPasswordRequest, 
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_session)
+):
     # Clean up expired tokens dynamically
     db.exec(delete(PasswordResetToken).where(PasswordResetToken.expires_at < datetime.utcnow()))
     db.commit()
@@ -143,9 +148,8 @@ def forgot_password(req_data: ForgotPasswordRequest, db: Session = Depends(get_s
     db.add(reset_token)
     db.commit()
     
-    # Simulate email dispatch
-    print(f"\n[SIMULATED EMAIL] To: {normalized_email}")
-    print(f"Password reset link: http://localhost:5173/reset-password?token={token}\n")
+    # Send email in background task
+    background_tasks.add_task(send_reset_email, normalized_email, token)
     
     return {
         "message": "Password reset link has been sent.",
