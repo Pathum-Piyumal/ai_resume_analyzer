@@ -91,6 +91,15 @@ export default function SavedJobsPage({ analysisResult }: SavedJobsPageProps) {
     }
   }
 
+  const handleStatusChange = async (id: number, newStatus: any) => {
+    try {
+      const updated = await api.updateSavedJobStatus(id, newStatus)
+      setSavedJobs(prev => prev.map(job => job.id === id ? { ...job, status: updated.status } : job))
+    } catch (err) {
+      console.error("Failed to update job status", err)
+    }
+  }
+
   const handleSaveJob = async (id: number) => {
     const jobToSave = exploreJobs.find(j => j.id === id)
     if (jobToSave) {
@@ -294,6 +303,20 @@ export default function SavedJobsPage({ analysisResult }: SavedJobsPageProps) {
                       <div className="flex items-center gap-2 text-[11px] text-slate-300 font-sans">
                         <DollarSign className="h-3.5 w-3.5 text-slate-500" />
                         {(job as any).salary || '$130k - $160k'}
+                      </div>
+                      <div className="flex items-center gap-2 text-[11px] text-slate-300 font-sans select-none">
+                        <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Status:</span>
+                        <select 
+                          value={job.status} 
+                          onChange={(e) => handleStatusChange(job.id, e.target.value)}
+                          className="bg-[#121626] border border-white/10 rounded-lg px-2 py-1 text-[10px] font-bold text-white focus:outline-none focus:border-brand-blue cursor-pointer transition-colors hover:border-white/20"
+                        >
+                          <option value="saved">Saved</option>
+                          <option value="applied">Applied</option>
+                          <option value="interviewing">Interviewing</option>
+                          <option value="offer">Offer</option>
+                          <option value="rejected">Rejected</option>
+                        </select>
                       </div>
                     </div>
                     
