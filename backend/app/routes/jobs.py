@@ -42,6 +42,20 @@ def save_job(
     db: Session = Depends(get_session)
 ):
     """Save a job posting to the user's dashboard."""
+    # Check if this job has already been saved by the current user
+    existing_job = db.exec(
+        select(SavedJob).where(
+            SavedJob.user_id == current_user.id,
+            SavedJob.company == job_data.company,
+            SavedJob.title == job_data.title
+        )
+    ).first()
+    if existing_job:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You have already saved this job posting."
+        )
+        
     new_job = SavedJob(
         user_id=current_user.id,
         title=job_data.title,

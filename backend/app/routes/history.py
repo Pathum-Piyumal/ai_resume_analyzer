@@ -54,3 +54,21 @@ def get_scan_detail(
             detail="Scan record not found"
         )
     return scan
+
+@router.delete("/{scan_id}", status_code=status.HTTP_200_OK)
+def delete_scan(
+    scan_id: int,
+    current_user: User = Depends(get_current_user), 
+    db: Session = Depends(get_session)
+):
+    """Delete a specific past scan record from history."""
+    statement = select(ResumeScan).where(ResumeScan.id == scan_id, ResumeScan.user_id == current_user.id)
+    scan = db.exec(statement).first()
+    if not scan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Scan record not found"
+        )
+    db.delete(scan)
+    db.commit()
+    return {"message": "Scan record deleted successfully"}
