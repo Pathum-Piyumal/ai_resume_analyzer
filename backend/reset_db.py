@@ -1,15 +1,13 @@
-from sqlmodel import Session
+from sqlmodel import SQLModel
 from app.db import engine
-from app.models.models import User, UserSetting, SavedJob, ResumeScan
+# Import all models to ensure they register on SQLModel.metadata
+from app.models.models import User, UserSetting, SavedJob, ResumeScan, PasswordResetToken
 
 try:
-    with Session(engine) as session:
-        # Delete all records from all tables
-        session.query(UserSetting).delete()
-        session.query(SavedJob).delete()
-        session.query(ResumeScan).delete()
-        session.query(User).delete()
-        session.commit()
-        print("Database cleared successfully!")
+    print("Dropping all existing database tables...")
+    SQLModel.metadata.drop_all(engine)
+    print("Recreating all database tables with updated schemas...")
+    SQLModel.metadata.create_all(engine)
+    print("Database reset completed successfully!")
 except Exception as e:
-    print("Failed to clear database:", e)
+    print("Failed to reset database tables:", e)

@@ -5,7 +5,7 @@ from sqlalchemy import Column, JSON
 
 class UserSetting(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id", unique=True)
+    user_id: int = Field(foreign_key="user.id", ondelete="CASCADE", unique=True)
     theme: str = Field(default="dark")
     email_notifications: bool = Field(default=True)
     
@@ -14,7 +14,7 @@ class UserSetting(SQLModel, table=True):
 
 class SavedJob(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id")
+    user_id: int = Field(foreign_key="user.id", ondelete="CASCADE")
     title: str
     company: str
     location: Optional[str] = Field(default=None)
@@ -27,7 +27,7 @@ class SavedJob(SQLModel, table=True):
 
 class ResumeScan(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id")
+    user_id: int = Field(foreign_key="user.id", ondelete="CASCADE")
     file_name: str
     match_score: float
     resume_text: str
@@ -38,10 +38,18 @@ class ResumeScan(SQLModel, table=True):
     # Relationship back to User
     user: Optional["User"] = Relationship(back_populates="scans")
 
+class PasswordResetToken(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    email: str = Field(index=True)
+    token: str = Field(index=True, unique=True)
+    expires_at: datetime
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     email: str = Field(index=True, unique=True)
-    hashed_password: str
+    hashed_password: Optional[str] = Field(default=None, nullable=True) # Optional for Google sign-in
+    google_id: Optional[str] = Field(default=None, unique=True, nullable=True) # Optional link to Google account
     role: str = Field(default="job_seeker") # "job_seeker" or "admin"
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
