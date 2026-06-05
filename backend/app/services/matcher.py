@@ -17,11 +17,12 @@ def calculate_match(
         max_features=500        
     )
     
-    tfidf_matrix = vectorizer.fit_transform([clean_resume, clean_jd])
-    
-    similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
-    
-    match_percentage = round(float(similarity) * 100, 2)
+    try:
+        tfidf_matrix = vectorizer.fit_transform([clean_resume, clean_jd])
+        similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
+        match_percentage = round(float(similarity) * 100, 2)
+    except Exception:
+        match_percentage = 0.0
     
     missing_skills = sorted(list(set(jd_skills) - set(resume_skills)))
     

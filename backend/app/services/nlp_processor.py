@@ -34,8 +34,11 @@ def extract_skills(text: str) -> list:
     found_skills = set()
     
     for skill in SKILLS_DB:
-
-        pattern = r'\b' + re.escape(skill) + r'\b'
+        # Avoid word boundary issues for skills ending/starting in non-word chars (like C++, C#)
+        start_boundary = r'\b' if skill[0].isalnum() or skill[0] == '_' else r'(?:^|(?<=\W))'
+        end_boundary = r'\b' if skill[-1].isalnum() or skill[-1] == '_' else r'(?:^|(?=\W))'
+        pattern = start_boundary + re.escape(skill) + end_boundary
+        
         if re.search(pattern, cleaned_text):
             found_skills.add(skill)
     
