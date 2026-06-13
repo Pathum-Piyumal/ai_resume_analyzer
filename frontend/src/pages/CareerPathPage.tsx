@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Briefcase, 
   ArrowUpRight, 
@@ -16,112 +16,31 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence, Variants } from 'framer-motion'
 import NumberTicker from '../../components/NumberTicker'
+import { api } from '../utils/api'
 
 export default function CareerPathPage() {
   const [showCourses, setShowCourses] = useState(false)
   const [showProjects, setShowProjects] = useState(false)
+  const [careerSteps, setCareerSteps] = useState<any[]>([])
+  const [recommendedCourses, setRecommendedCourses] = useState<any[]>([])
+  const [guidedProjects, setGuidedProjects] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const careerSteps = [
-    {
-      id: 1,
-      role: 'Junior Developer',
-      status: 'completed',
-      salary: '$60k - $80k',
-      duration: '1-2 years',
-      skills: ['React', 'JavaScript', 'HTML/CSS'],
-    },
-    {
-      id: 2,
-      role: 'Frontend Developer',
-      status: 'current',
-      salary: '$90k - $120k',
-      duration: '2-4 years',
-      skills: ['TypeScript', 'State Management', 'Performance Optimization'],
-    },
-    {
-      id: 3,
-      role: 'Senior Frontend Engineer',
-      status: 'next',
-      salary: '$130k - $170k',
-      duration: '4-7 years',
-      skills: ['System Design', 'CI/CD', 'Mentorship', 'Architecture'],
-      match: 75,
-    },
-    {
-      id: 4,
-      role: 'Engineering Manager',
-      status: 'future',
-      salary: '$160k - $220k',
-      duration: '7+ years',
-      skills: ['Leadership', 'Agile', 'Team Building', 'Strategic Planning'],
-      match: 30,
+  useEffect(() => {
+    const fetchCareerData = async () => {
+      try {
+        const data = await api.getCareerPath()
+        setCareerSteps(data.career_steps || [])
+        setRecommendedCourses(data.recommended_courses || [])
+        setGuidedProjects(data.guided_projects || [])
+      } catch (err) {
+        console.error("Failed to fetch career path roadmap", err)
+      } finally {
+        setIsLoading(false)
+      }
     }
-  ]
-
-  const recommendedCourses = [
-    {
-      title: "Pragmatic System Design & Software Architecture",
-      platform: "Udemy Professional",
-      level: "Intermediate",
-      rating: "4.9",
-      duration: "18 hours • 45 Lectures",
-      description: "Learn how to build highly scalable frontend architectures, handle global scaling, configure custom CDNs, implement advanced caching patterns, and optimize core web vitals."
-    },
-    {
-      title: "Large-Scale Frontend UI Engineering",
-      platform: "Frontend Masters",
-      level: "Advanced",
-      rating: "4.8",
-      duration: "9 hours • 22 Lectures",
-      description: "Deep dive into monorepos, module federation, micro-frontends, state design patterns (Zustand, Redux, XState), custom tooling/bundling setups, and design system compilation."
-    },
-    {
-      title: "System Design Patterns & API Architectures",
-      platform: "Coursera (University)",
-      level: "Intermediate",
-      rating: "4.7",
-      duration: "4 weeks (3 hrs/week)",
-      description: "Explore microservice layouts, GraphQL gateway aggregation, WebSockets/SSE streaming integrations, rate limiting, and defensive architectural layouts."
-    }
-  ]
-
-  const guidedProjects = [
-    {
-      title: "Automate Frontend Deployments with GitHub Actions",
-      estTime: "2.5 hours",
-      difficulty: "Intermediate",
-      description: "Establish a complete CI/CD workflow that lints codebase formatting, runs Jest test suites, builds production assets, and deploys to a static staging URL automatically.",
-      steps: [
-        "Create GitHub Repository Secrets mapping AWS/Vercel keys.",
-        "Author workflow YAML file with multi-job pipeline matrix.",
-        "Enable caching strategies to accelerate node dependency builds.",
-        "Establish automatic Slack/Discord build-failure warnings."
-      ]
-    },
-    {
-      title: "Dockerizing a React SPA with Multi-Stage Nginx",
-      estTime: "3.5 hours",
-      difficulty: "Intermediate",
-      description: "Configure multi-stage Docker builds to reduce image sizes, bundle custom Nginx servers, and configure routing proxies to achieve secure sub-second content delivery.",
-      steps: [
-        "Write Dockerfile utilizing Alpine Node environments.",
-        "Build and compress React code assets for production deployment.",
-        "Configure custom Nginx route files to redirect requests back to index.html.",
-        "Establish local docker-compose environments with proxy servers."
-      ]
-    },
-    {
-      title: "CI Regression Testing with Jest & Cypress",
-      estTime: "4 hours",
-      difficulty: "Advanced",
-      description: "Implement regression checking workflows. Setup headless Chrome instances inside GitHub Actions runners to assert component layout parameters and user interactions.",
-      steps: [
-        "Implement headless Chrome setup inside CI runners.",
-        "Author end-to-end user signup and payment flow mock scripts.",
-        "Establish automated accessibility check alerts."
-      ]
-    }
-  ]
+    fetchCareerData()
+  }, [])
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget
@@ -153,6 +72,15 @@ export default function CareerPathPage() {
         damping: 18 
       } 
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-blue border-t-transparent" />
+        <p className="text-xs text-brand-textMuted font-sans">Compiling AI career roadmap...</p>
+      </div>
+    )
   }
 
   return (
@@ -247,7 +175,7 @@ export default function CareerPathPage() {
                           Required Core Skills
                         </span>
                         <div className="flex flex-wrap gap-2">
-                          {step.skills.map((skill, i) => (
+                          {step.skills.map((skill: string, i: number) => (
                             <span 
                               key={i} 
                               className={`px-2.5 py-1 rounded-md text-[10px] font-semibold border ${
@@ -459,7 +387,7 @@ export default function CareerPathPage() {
                     <div className="space-y-1.5 pt-1">
                       <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Project Steps</span>
                       <ol className="list-decimal list-inside text-[10px] text-slate-400 space-y-1 font-sans font-light">
-                        {project.steps.map((step, sIdx) => (
+                        {project.steps.map((step: string, sIdx: number) => (
                           <li key={sIdx}>{step}</li>
                         ))}
                       </ol>
