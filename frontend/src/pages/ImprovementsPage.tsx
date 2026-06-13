@@ -34,73 +34,70 @@ function NeuralNetworkGraphic() {
 
 interface ImprovementsPageProps {
   analysisResult?: any
+  onNewAnalysis?: () => void
 }
 
-export default function ImprovementsPage({ analysisResult }: ImprovementsPageProps) {
+export default function ImprovementsPage({ analysisResult, onNewAnalysis }: ImprovementsPageProps) {
   const [appliedCount, setAppliedCount] = useState<number>(0)
   const [appliedKeywords, setAppliedKeywords] = useState<string[]>([])
 
-  const recommendations: any[] = []
-
-  if (analysisResult) {
-    // 1. Add formatting issues
-    (analysisResult.formatting_issues || []).forEach((issue: string, idx: number) => {
-      recommendations.push({
-        id: idx + 1,
-        title: "Formatting & Style Optimization",
-        tag: "HIGH PRIORITY",
-        tagColor: "bg-rose-500/10 border-rose-500/20 text-rose-400",
-        desc: issue,
-        actionText: "Fix Layout"
-      })
-    });
-
-    // 2. Add bullet point recommendations
-    (analysisResult.bullet_points_improvements || []).forEach((bullet: any, idx: number) => {
-      recommendations.push({
-        id: idx + 100,
-        title: "Strengthen Bullet Point Achievement",
-        tag: "MEDIUM PRIORITY",
-        tagColor: "bg-brand-blue/10 border-brand-blue/20 text-brand-lightBlue",
-        desc: `Before: "${bullet.before}" | Proposed Rewrite: "${bullet.after}"`,
-        actionText: "Accept Rewrite"
-      })
-    })
-  }
-
-  if (recommendations.length === 0) {
-    recommendations.push(
-      {
-        id: 1,
-        title: "Quantify Achievement",
-        tag: "HIGH PRIORITY",
-        tagColor: "bg-amber-500/10 border-amber-500/25 text-amber-400",
-        desc: "Your experience section lacks concrete data. Adding metrics like 'Increased efficiency by 20%' significantly boosts ATS ranking.",
-        actionText: "Fix Now"
-      },
-      {
-        id: 2,
-        title: "Strengthen Verb Choice",
-        tag: "MEDIUM PRIORITY",
-        tagColor: "bg-brand-blue/10 border-brand-blue/20 text-brand-lightBlue",
-        desc: "Replace passive phrases like 'responsible for' with action verbs like 'spearheaded,' 'orchestrated,' or 'implemented.'",
-        actionText: "Review Suggestions"
-      },
-      {
-        id: 3,
-        title: "Education Formatting",
-        tag: "LOW PRIORITY",
-        tagColor: "bg-slate-800 border-white/5 text-slate-400",
-        desc: "Standardize the data format in your education section to match your professional experience for better visual flow.",
-        actionText: "Quick Align"
-      }
+  if (!analysisResult) {
+    return (
+      <div className="max-w-xl mx-auto mt-16 text-center space-y-6 rounded-2xl border border-white/5 bg-brand-card/45 p-12 backdrop-blur-md shadow-2xl relative overflow-hidden">
+        {/* Glow orb */}
+        <div className="absolute inset-0 bg-[radial-gradient(180px circle at 50% 50%, rgba(245,158,11,0.05), transparent 85%)]" />
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-blue/5 text-brand-lightBlue border border-brand-blue/10 relative z-10">
+          <BrainCircuit className="h-6 w-6 animate-pulse" />
+        </div>
+        <div className="space-y-2 relative z-10">
+          <h3 className="text-xl font-extrabold text-white tracking-tight font-sans">
+            No Active Optimizations
+          </h3>
+          <p className="text-xs text-brand-textMuted max-w-xs mx-auto leading-relaxed font-sans font-light">
+            Analyze your resume and job description to view dynamic optimization suggestions, bullet point rewrites, and missing keywords.
+          </p>
+        </div>
+        <div className="pt-2 relative z-10">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onNewAnalysis}
+            className="rounded-xl bg-brand-blue px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-brand-blue/20 transition-all focus:outline-none"
+          >
+            Start Analysis
+          </motion.button>
+        </div>
+      </div>
     )
   }
 
-  const keywords: string[] = analysisResult?.missing_skills || [
-    "Cloud Infrastructure", "Agile Methodology", "Stakeholder Management", 
-    "Cross-functional Leadership", "Data Visualization", "SaaS Strategy"
-  ]
+  const recommendations: any[] = [];
+
+  // 1. Add formatting issues
+  (analysisResult.formatting_issues || []).forEach((issue: string, idx: number) => {
+    recommendations.push({
+      id: idx + 1,
+      title: "Formatting & Style Optimization",
+      tag: "HIGH PRIORITY",
+      tagColor: "bg-rose-500/10 border-rose-500/20 text-rose-400",
+      desc: issue,
+      actionText: "Fix Layout"
+    })
+  });
+
+  // 2. Add bullet point recommendations
+  (analysisResult.bullet_points_improvements || []).forEach((bullet: any, idx: number) => {
+    recommendations.push({
+      id: idx + 100,
+      title: "Strengthen Bullet Point Achievement",
+      tag: "MEDIUM PRIORITY",
+      tagColor: "bg-brand-blue/10 border-brand-blue/20 text-brand-lightBlue",
+      desc: `Before: "${bullet.before}" | Proposed Rewrite: "${bullet.after}"`,
+      actionText: "Accept Rewrite"
+    })
+  })
+
+  const keywords: string[] = analysisResult.missing_skills || []
 
   const handleApplyKeyword = (kw: string) => {
     if (appliedKeywords.includes(kw)) {
@@ -109,6 +106,26 @@ export default function ImprovementsPage({ analysisResult }: ImprovementsPagePro
       setAppliedKeywords(prev => [...prev, kw])
     }
   }
+
+  const getRelativeTime = (isoString: string) => {
+    if (!isoString) return 'recently'
+    const scanDate = new Date(isoString)
+    const now = new Date()
+    const diffMs = now.getTime() - scanDate.getTime()
+    const diffMins = Math.round(diffMs / (1000 * 60))
+    
+    if (diffMins < 1) return 'just now'
+    if (diffMins === 1) return '1 minute ago'
+    if (diffMins < 60) return `${diffMins} minutes ago`
+    
+    const diffHours = Math.round(diffMins / 60)
+    if (diffHours === 1) return '1 hour ago'
+    if (diffHours < 24) return `${diffHours} hours ago`
+    
+    return scanDate.toLocaleDateString(undefined, {month: 'short', day: 'numeric'})
+  }
+
+  const scanTimeText = getRelativeTime(analysisResult.scanned_at)
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget
@@ -174,7 +191,7 @@ export default function ImprovementsPage({ analysisResult }: ImprovementsPagePro
         {/* Time Stamp Badge */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#121626] border border-white/5 text-[10px] text-brand-textMuted font-medium self-start sm:self-auto select-none">
           <Clock className="h-3.5 w-3.5 text-amber-500" />
-          <span>Last analyzed 2 hours ago</span>
+          <span>Last analyzed {scanTimeText}</span>
         </div>
       </motion.div>
 
