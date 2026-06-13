@@ -115,6 +115,7 @@ export interface DashboardStats {
 export interface UserSettings {
   theme: string
   email_notifications: boolean
+  tier?: string
 }
 
 // API methods
@@ -287,6 +288,40 @@ export const api = {
 
   async updateSettings(settings: UserSettings): Promise<UserSettings> {
     const response = await apiClient.put<UserSettings>('/settings', settings)
+    return response.data
+  },
+
+  // Admin Endpoints
+  async getAdminStats(): Promise<{ total_users: number, total_scans: number, avg_score: number, cpu_load: number, latency: number }> {
+    const response = await apiClient.get('/admin/stats')
+    return response.data
+  },
+
+  async getAdminScans(): Promise<{ id: number, userName: string, userAvatar: string, fileName: string, jobTitle: string, score: number, date: string }[]> {
+    const response = await apiClient.get('/admin/scans')
+    return response.data
+  },
+
+  // Career Path
+  async getCareerPath(): Promise<any> {
+    const response = await apiClient.get('/career/path')
+    return response.data
+  },
+
+  // Upgrade
+  async upgradeToPro(): Promise<UserSettings> {
+    const response = await apiClient.post<UserSettings>('/settings/upgrade')
+    return response.data
+  },
+
+  // Password Recovery
+  async forgotPassword(email: string): Promise<{ message: string; token?: string }> {
+    const response = await apiClient.post<{ message: string; token?: string }>('/auth/forgot-password', { email })
+    return response.data
+  },
+
+  async resetPassword(token: string, password: string): Promise<{ message: string }> {
+    const response = await apiClient.post<{ message: string }>('/auth/reset-password', { token, password })
     return response.data
   },
 }
