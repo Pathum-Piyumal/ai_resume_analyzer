@@ -69,7 +69,7 @@ export interface SavedJob {
   company: string
   location?: string
   link?: string
-  status: 'saved' | 'applied'
+  status: 'saved' | 'applied' | 'interviewing' | 'offer' | 'rejected'
 }
 
 export interface ScanSummary {
@@ -89,9 +89,33 @@ export interface ScanDetail {
   scanned_at: string
 }
 
+export interface DashboardStats {
+  total_scans: number
+  avg_score: number
+  total_skills_matched: number
+  match_history: {
+    id: number
+    scanned_at: string
+    match_score: number
+    file_name: string
+  }[]
+  skills_gap: {
+    top_strengths: string[]
+    top_gaps: string[]
+  }
+  pipeline: {
+    saved: number
+    applied: number
+    interviewing: number
+    offer: number
+    rejected: number
+  }
+}
+
 export interface UserSettings {
   theme: string
   email_notifications: boolean
+  tier?: string
 }
 
 // API methods
@@ -134,6 +158,86 @@ export const api = {
     return response.data
   },
 
+  analyzeResumeStream(
+    file: File, 
+    jobDescription: string, 
+    onProgress: (progress: number, stepText: string) => void,
+    onComplete: (result: AnalysisResult) => void,
+    onError: (errorMsg: string) => void
+  ): AbortController {
+    const abortController = new AbortController()
+    const formData = new FormData()
+    formData.append('resume', file)
+    formData.append('job_description', jobDescription)
+    
+    const token = localStorage.getItem('resumeiq-auth-token')
+    
+    ;(async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/analyze/stream`, {
+          method: 'POST',
+          headers: {
+            'Authorization': token ? `Bearer ${token}` : '',
+          },
+          body: formData,
+          signal: abortController.signal
+        })
+        
+        if (!response.ok) {
+          const text = await response.text()
+          let errDetail = 'An error occurred during analysis.'
+          try {
+            const errObj = JSON.parse(text)
+            errDetail = errObj.detail || errDetail
+          } catch {
+            // ignore
+          }
+          throw new Error(errDetail)
+        }
+        
+        if (!response.body) {
+          throw new Error('ReadableStream not supported by browser.')
+        }
+        
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+        
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          buffer = lines.pop() || ''
+          
+          for (const line of lines) {
+            if (!line.trim()) continue
+            try {
+              const data = JSON.parse(line)
+              if (data.status === 'progress') {
+                onProgress(data.progress, data.message)
+              } else if (data.status === 'completed') {
+                onComplete(data.result)
+              } else if (data.status === 'error') {
+                throw new Error(data.message)
+              }
+            } catch (err: any) {
+              onError(err.message || 'Error parsing server response.')
+              abortController.abort()
+              return
+            }
+          }
+        }
+      } catch (err: any) {
+        if (err.name === 'AbortError') return
+        onError(err.message || 'Could not connect to the backend server. Please make sure the backend is running.')
+      }
+    })()
+    
+    return abortController
+  },
+
   // Saved Jobs
   async getSavedJobs(): Promise<SavedJob[]> {
     const response = await apiClient.get<SavedJob[]>('/jobs/saved')
@@ -150,6 +254,11 @@ export const api = {
     return response.data
   },
 
+  async updateSavedJobStatus(jobId: number, status: string): Promise<SavedJob> {
+    const response = await apiClient.put<SavedJob>(`/jobs/saved/${jobId}/status`, { status })
+    return response.data
+  },
+
   // History
   async getScanHistory(): Promise<ScanSummary[]> {
     const response = await apiClient.get<ScanSummary[]>('/history')
@@ -161,6 +270,16 @@ export const api = {
     return response.data
   },
 
+  async deleteScanHistory(id: number): Promise<{ message: string }> {
+    const response = await apiClient.delete<{ message: string }>(`/history/${id}`)
+    return response.data
+  },
+
+  async getDashboardStats(): Promise<DashboardStats> {
+    const response = await apiClient.get<DashboardStats>('/history/stats')
+    return response.data
+  },
+
   // Settings
   async getSettings(): Promise<UserSettings> {
     const response = await apiClient.get<UserSettings>('/settings')
@@ -169,6 +288,40 @@ export const api = {
 
   async updateSettings(settings: UserSettings): Promise<UserSettings> {
     const response = await apiClient.put<UserSettings>('/settings', settings)
+    return response.data
+  },
+
+  // Admin Endpoints
+  async getAdminStats(): Promise<{ total_users: number, total_scans: number, avg_score: number, cpu_load: number, latency: number }> {
+    const response = await apiClient.get('/admin/stats')
+    return response.data
+  },
+
+  async getAdminScans(): Promise<{ id: number, userName: string, userAvatar: string, fileName: string, jobTitle: string, score: number, date: string }[]> {
+    const response = await apiClient.get('/admin/scans')
+    return response.data
+  },
+
+  // Career Path
+  async getCareerPath(): Promise<any> {
+    const response = await apiClient.get('/career/path')
+    return response.data
+  },
+
+  // Upgrade
+  async upgradeToPro(): Promise<UserSettings> {
+    const response = await apiClient.post<UserSettings>('/settings/upgrade')
+    return response.data
+  },
+
+  // Password Recovery
+  async forgotPassword(email: string): Promise<{ message: string; token?: string }> {
+    const response = await apiClient.post<{ message: string; token?: string }>('/auth/forgot-password', { email })
+    return response.data
+  },
+
+  async resetPassword(token: string, password: string): Promise<{ message: string }> {
+    const response = await apiClient.post<{ message: string }>('/auth/reset-password', { token, password })
     return response.data
   },
 }

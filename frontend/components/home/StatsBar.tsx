@@ -1,5 +1,5 @@
-import { useRef } from 'react'
-import { motion, useInView } from 'framer-motion'
+import { useRef, useState, useEffect } from 'react'
+import { motion, useInView, animate } from 'framer-motion'
 
 interface StatItemProps {
   value: number
@@ -12,6 +12,29 @@ interface StatItemProps {
 function StatItem({ value, suffix, label, delay = 0, color = 'text-brand-lightBlue' }: StatItemProps) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
+  const [displayVal, setDisplayVal] = useState(0)
+
+  useEffect(() => {
+    if (!inView) return
+
+    let controls: any
+    // Trigger count animation after staggered delay
+    const timer = setTimeout(() => {
+      controls = animate(0, value, {
+        duration: 1.8,
+        ease: [0.21, 1.02, 0.43, 1.01], // Smooth custom ease curve
+        onUpdate: (latest) => {
+          const hasDecimal = value % 1 !== 0
+          setDisplayVal(hasDecimal ? Math.round(latest * 10) / 10 : Math.round(latest))
+        }
+      })
+    }, delay * 1000)
+
+    return () => {
+      clearTimeout(timer)
+      if (controls) controls.stop()
+    }
+  }, [inView, value, delay])
 
   return (
     <motion.div
@@ -22,8 +45,8 @@ function StatItem({ value, suffix, label, delay = 0, color = 'text-brand-lightBl
       className="flex flex-col items-center justify-center p-6 text-center group"
     >
       <div className="flex items-baseline font-sans text-4xl sm:text-5xl font-extrabold tracking-tight mb-2">
-        <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to right, rgb(var(--brand-text-primary)), #CBD5E1)' }}>
-          {value}
+        <span className="text-brand-textPrimary font-mono">
+          {displayVal}
         </span>
         <motion.span
           className={`${color} ml-0.5`}
@@ -53,10 +76,10 @@ export default function StatsBar() {
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-y-8 divide-y md:divide-y-0 md:divide-x divide-white/10">
-          <StatItem value={98}  suffix="%" label="ATS Match Rate"       delay={0}   color="text-emerald-400" />
+          <StatItem value={98}  suffix="%" label="ATS Match Rate"       delay={0}   color="text-brand-lightBlue" />
           <StatItem value={1.2} suffix="M+" label="Resumes Optimized"   delay={0.1} color="text-brand-lightBlue" />
-          <StatItem value={42}  suffix="%" label="Higher Callback Rate"  delay={0.2} color="text-violet-400" />
-          <StatItem value={10}  suffix="x" label="Faster Application"   delay={0.3} color="text-amber-400" />
+          <StatItem value={42}  suffix="%" label="Higher Callback Rate"  delay={0.2} color="text-brand-lightBlue" />
+          <StatItem value={10}  suffix="x" label="Faster Application"   delay={0.3} color="text-brand-lightBlue" />
         </div>
       </div>
     </div>

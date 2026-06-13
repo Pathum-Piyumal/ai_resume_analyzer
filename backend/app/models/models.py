@@ -8,6 +8,7 @@ class UserSetting(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id", ondelete="CASCADE", unique=True)
     theme: str = Field(default="dark")
     email_notifications: bool = Field(default=True)
+    tier: str = Field(default="free") # "free" or "pro"
     
     # Relationship back to User
     user: Optional["User"] = Relationship(back_populates="setting")

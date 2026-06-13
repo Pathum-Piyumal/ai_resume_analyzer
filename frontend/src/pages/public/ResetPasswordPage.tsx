@@ -1,27 +1,41 @@
 import { useState } from 'react'
-import { Sparkles, Mail, ArrowLeft, CheckCircle2 } from 'lucide-react'
+import { Sparkles, Eye, EyeOff, CheckCircle2, Lock, ArrowLeft } from 'lucide-react'
 import { api } from '../../utils/api'
 
-interface ForgotPasswordPageProps {
+interface ResetPasswordPageProps {
+  token: string
   onBackToLogin: () => void
 }
 
-export default function ForgotPasswordPage({ onBackToLogin }: ForgotPasswordPageProps) {
-  const [email, setEmail] = useState('')
+export default function ResetPasswordPage({ token, onBackToLogin }: ResetPasswordPageProps) {
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email) return
+    if (!password || !confirmPassword) return
+    
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.')
+      return
+    }
+
     setIsLoading(true)
     setError('')
     try {
-      await api.forgotPassword(email)
+      await api.resetPassword(token, password)
       setIsSubmitted(true)
     } catch (err: any) {
-      let message = 'Failed to request reset link. Please try again.'
+      let message = 'Failed to reset password. The token may be expired or invalid.'
       if (err.response) {
         message = err.response.data?.detail || message
       }
@@ -50,38 +64,69 @@ export default function ForgotPasswordPage({ onBackToLogin }: ForgotPasswordPage
           
           {!isSubmitted ? (
             <div className="space-y-6">
+              <div className="text-center select-none">
+                <h3 className="text-lg font-bold text-white tracking-tight font-sans">
+                  Choose a new password
+                </h3>
+                <p className="mt-1.5 text-xs text-brand-textMuted font-sans font-light leading-relaxed">
+                  Please enter your new password below to recover your account access.
+                </p>
+              </div>
+
               {error && (
                 <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl font-sans font-light">
                   {error}
                 </div>
               )}
-              <div className="text-center select-none">
-                <h3 className="text-lg font-bold text-white tracking-tight font-sans">
-                  Reset your password
-                </h3>
-                <p className="mt-1.5 text-xs text-brand-textMuted font-sans font-light leading-relaxed">
-                  Enter your email address and we'll send you a recovery link.
-                </p>
-              </div>
 
               <form className="space-y-4" onSubmit={handleSubmit}>
-                {/* Email input field */}
+                {/* New Password */}
                 <div>
-                  <label htmlFor="email" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 font-sans">
-                    Email Address
+                  <label htmlFor="pass" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 font-sans">
+                    New Password
                   </label>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                      <Mail className="h-4 w-4" />
+                      <Lock className="h-4 w-4" />
                     </span>
                     <input
-                      id="email"
-                      type="email"
+                      id="pass"
+                      type={showPassword ? 'text' : 'password'}
                       required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="name@company.com"
-                      className="w-full bg-[#121626]/60 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 transition-all font-sans font-light"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full bg-[#121626]/60 border border-white/10 rounded-xl pl-11 pr-11 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 transition-all font-sans font-light"
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white transition-colors focus:outline-none"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <label htmlFor="confirmPass" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 font-sans">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                      <Lock className="h-4 w-4" />
+                    </span>
+                    <input
+                      id="confirmPass"
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full bg-[#121626]/60 border border-white/10 rounded-xl pl-11 pr-11 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 transition-all font-sans font-light"
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
@@ -94,9 +139,9 @@ export default function ForgotPasswordPage({ onBackToLogin }: ForgotPasswordPage
                     className="w-full rounded-xl bg-brand-blue hover:bg-blue-600 py-3 font-semibold text-xs text-white shadow-xl shadow-brand-blue/15 hover:shadow-brand-blue/25 hover:scale-[1.01] active:scale-[0.99] transition-all duration-150 flex items-center justify-center gap-2"
                   >
                     {isLoading ? (
-                      <span>Sending reset link...</span>
+                      <span>Saving new password...</span>
                     ) : (
-                      <span>SEND RESET LINK</span>
+                      <span>RESET PASSWORD</span>
                     )}
                   </button>
                 </div>
@@ -121,19 +166,19 @@ export default function ForgotPasswordPage({ onBackToLogin }: ForgotPasswordPage
 
               <div className="space-y-2">
                 <h3 className="text-lg font-bold text-white tracking-tight font-sans">
-                  Check your email
+                  Password updated!
                 </h3>
                 <p className="text-xs text-brand-textMuted max-w-xs mx-auto leading-relaxed font-sans font-light">
-                  We've sent a recovery link to <span className="text-slate-200 font-normal">{email}</span>. Please check your inbox and spam folders.
+                  Your password has been changed successfully. You can now use your new password to log in.
                 </p>
               </div>
 
               <div className="pt-4">
                 <button
                   onClick={onBackToLogin}
-                  className="w-full rounded-xl border border-white/10 hover:border-white/20 bg-[#121626]/80 hover:bg-slate-800/30 py-3 font-semibold text-xs text-slate-300 hover:text-white transition-all active:scale-[0.98]"
+                  className="w-full rounded-xl bg-brand-blue hover:bg-blue-600 py-3 font-semibold text-xs text-white shadow-xl shadow-brand-blue/15 transition-all active:scale-[0.98]"
                 >
-                  Return to Login
+                  Go to Login
                 </button>
               </div>
             </div>
@@ -142,7 +187,5 @@ export default function ForgotPasswordPage({ onBackToLogin }: ForgotPasswordPage
         </div>
       </div>
     </div>
-
-
   )
 }

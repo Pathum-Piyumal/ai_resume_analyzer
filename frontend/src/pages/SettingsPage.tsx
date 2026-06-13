@@ -15,6 +15,7 @@ export default function SettingsPage({ onUpgradeClick, theme = 'dark', onThemeCh
   const [firstName, setFirstName] = useState('Job')
   const [lastName, setLastName] = useState('Seeker')
   const [jobTitle, setJobTitle] = useState('Software Engineer')
+  const [tier, setTier] = useState('free')
   const [isLoading, setIsLoading] = useState(true)
 
   // 1. Load settings & profile on mount
@@ -26,8 +27,9 @@ export default function SettingsPage({ onUpgradeClick, theme = 'dark', onThemeCh
         
         const settings = await api.getSettings()
         setEmailNotifications(settings.email_notifications)
+        setTier(settings.tier || 'free')
         if (onThemeChange) {
-          onThemeChange(settings.theme)
+          onThemeChange(settings.theme as 'dark' | 'light')
         }
       } catch (err) {
         console.error("Failed to load settings data", err)
@@ -235,20 +237,33 @@ export default function SettingsPage({ onUpgradeClick, theme = 'dark', onThemeCh
                 <p className="text-xs text-brand-textMuted font-sans mt-1">Manage your subscription and payment methods.</p>
               </div>
 
-              <div className="p-5 rounded-xl border border-brand-blue/30 bg-brand-blue/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className={`p-5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${tier === 'pro' ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-brand-blue/30 bg-brand-blue/5'}`}>
                 <div>
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-brand-blue/20 text-brand-lightBlue text-[10px] font-bold uppercase tracking-wider mb-2">
+                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider mb-2 ${tier === 'pro' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-brand-blue/20 text-brand-lightBlue'}`}>
                     Current Plan
                   </div>
-                  <h4 className="text-xl font-bold text-white tracking-tight">Free Tier</h4>
-                  <p className="text-xs text-brand-textMuted mt-1">You have 10 resume analyses remaining this month.</p>
+                  <h4 className="text-xl font-bold text-white tracking-tight">
+                    {tier === 'pro' ? 'Pro Plan' : 'Free Tier'}
+                  </h4>
+                  <p className="text-xs text-brand-textMuted mt-1">
+                    {tier === 'pro' 
+                      ? 'Thank you for supporting ResumeIQ! You have unlimited analyses.' 
+                      : 'You have 10 resume analyses remaining this month.'}
+                  </p>
                 </div>
-                <button 
-                  onClick={onUpgradeClick}
-                  className="rounded-xl bg-white hover:bg-slate-200 text-brand-dark px-6 py-2.5 text-xs font-bold shadow-lg transition-all active:scale-[0.98] whitespace-nowrap"
-                >
-                  Upgrade to Pro
-                </button>
+                {tier !== 'pro' && (
+                  <button 
+                    onClick={onUpgradeClick}
+                    className="rounded-xl bg-white hover:bg-slate-200 text-brand-dark px-6 py-2.5 text-xs font-bold shadow-lg transition-all active:scale-[0.98] whitespace-nowrap"
+                  >
+                    Upgrade to Pro
+                  </button>
+                )}
+                {tier === 'pro' && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 select-none">
+                    Premium Active
+                  </span>
+                )}
               </div>
             </div>
           )}

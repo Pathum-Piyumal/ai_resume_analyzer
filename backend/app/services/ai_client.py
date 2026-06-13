@@ -112,3 +112,251 @@ JSON Schema Output format:
     except Exception as e:
         logger.error(f"Gemini API call failed: {e}. Falling back to rule-based matching.")
         return get_fallback_analysis(resume_text, job_description, resume_skills, jd_skills)
+
+def get_fallback_career_path() -> Dict[str, Any]:
+    """Generates a default career path roadmap if the AI API is offline."""
+    return {
+        "career_steps": [
+            {
+                "id": 1,
+                "role": "Junior Developer",
+                "status": "completed",
+                "salary": "$60k - $80k",
+                "duration": "1-2 years",
+                "skills": ["React", "JavaScript", "HTML/CSS"]
+            },
+            {
+                "id": 2,
+                "role": "Frontend Developer",
+                "status": "current",
+                "salary": "$90k - $120k",
+                "duration": "2-4 years",
+                "skills": ["TypeScript", "State Management", "Performance Optimization"]
+            },
+            {
+                "id": 3,
+                "role": "Senior Frontend Engineer",
+                "status": "next",
+                "salary": "$130k - $170k",
+                "duration": "4-7 years",
+                "skills": ["System Design", "CI/CD", "Mentorship", "Architecture"],
+                "match": 75
+            },
+            {
+                "id": 4,
+                "role": "Engineering Manager",
+                "status": "future",
+                "salary": "$160k - $220k",
+                "duration": "7+ years",
+                "skills": ["Leadership", "Agile", "Team Building", "Strategic Planning"],
+                "match": 30
+            }
+        ],
+        "recommended_courses": [
+            {
+                "title": "Pragmatic System Design & Software Architecture",
+                "platform": "Udemy Professional",
+                "level": "Intermediate",
+                "rating": "4.9",
+                "duration": "18 hours • 45 Lectures",
+                "description": "Learn how to build highly scalable frontend architectures, handle global scaling, configure custom CDNs, implement advanced caching patterns, and optimize core web vitals."
+            },
+            {
+                "title": "Large-Scale Frontend UI Engineering",
+                "platform": "Frontend Masters",
+                "level": "Advanced",
+                "rating": "4.8",
+                "duration": "9 hours • 22 Lectures",
+                "description": "Deep dive into monorepos, module federation, micro-frontends, state design patterns (Zustand, Redux, XState), custom tooling/bundling setups, and design system compilation."
+            },
+            {
+                "title": "System Design Patterns & API Architectures",
+                "platform": "Coursera (University)",
+                "level": "Intermediate",
+                "rating": "4.7",
+                "duration": "4 weeks (3 hrs/week)",
+                "description": "Explore microservice layouts, GraphQL gateway aggregation, WebSockets/SSE streaming integrations, rate limiting, and defensive architectural layouts."
+            }
+        ],
+        "guided_projects": [
+            {
+                "title": "Automate Frontend Deployments with GitHub Actions",
+                "estTime": "2.5 hours",
+                "difficulty": "Intermediate",
+                "description": "Establish a complete CI/CD workflow that lints codebase formatting, runs Jest test suites, builds production assets, and deploys to a static staging URL automatically.",
+                "steps": [
+                    "Create GitHub Repository Secrets mapping AWS/Vercel keys.",
+                    "Author workflow YAML file with multi-job pipeline matrix.",
+                    "Enable caching strategies to accelerate node dependency builds.",
+                    "Establish automatic Slack/Discord build-failure warnings."
+                ]
+            },
+            {
+                "title": "Dockerizing a React SPA with Multi-Stage Nginx",
+                "estTime": "3.5 hours",
+                "difficulty": "Intermediate",
+                "description": "Configure multi-stage Docker builds to reduce image sizes, bundle custom Nginx servers, and configure routing proxies to achieve secure sub-second content delivery.",
+                "steps": [
+                    "Write Dockerfile utilizing Alpine Node environments.",
+                    "Build and compress React code assets for production deployment.",
+                    "Configure custom Nginx route files to redirect requests back to index.html.",
+                    "Establish local docker-compose environments with proxy servers."
+                ]
+            },
+            {
+                "title": "CI Regression Testing with Jest & Cypress",
+                "estTime": "4 hours",
+                "difficulty": "Advanced",
+                "description": "Implement regression checking workflows. Setup headless Chrome instances inside GitHub Actions runners to assert component layout parameters and user interactions.",
+                "steps": [
+                    "Implement headless Chrome setup inside CI runners.",
+                    "Author end-to-end user signup and payment flow mock scripts.",
+                    "Establish automated accessibility check alerts."
+                ]
+            }
+        ]
+    }
+
+async def generate_career_path_with_ai(
+    resume_text: str,
+    job_description: str,
+    matched_skills: List[str],
+    missing_skills: List[str]
+) -> Dict[str, Any]:
+    """Sends user profile context to Google Gemini to generate a tailored career path roadmap."""
+    if not ai_model:
+        return get_fallback_career_path()
+        
+    prompt = f"""
+You are an expert career counselor, tech recruiter, and mentor.
+Analyze the user's current profile based on their resume, matching status, and target job description:
+
+--- MATCHED SKILLS ---
+{', '.join(matched_skills)}
+
+--- MISSING SKILLS ---
+{', '.join(missing_skills)}
+
+--- TARGET JOB DESCRIPTION ---
+{job_description}
+
+Provide a structured, personalized career path roadmap strictly adhering to the JSON schema below.
+The roadmap must show:
+1. A sequence of 4 career steps (roles) leading up to the target role and beyond (Junior, Mid/Current, Next Target, Future Management/Architecture).
+2. 3 highly specific recommended courses on standard platforms (Udemy, Coursera, Frontend Masters, etc.) targeting the missing skills.
+3. 3 hands-on guided coding projects focusing on CI/CD, DevOps, or system design, with step-by-step instructions.
+
+JSON Schema Output format:
+{{
+  "career_steps": [
+    {{
+      "id": 1,
+      "role": "Junior Developer",
+      "status": "completed",
+      "salary": "$60k - $80k",
+      "duration": "1-2 years",
+      "skills": ["React", "JavaScript", "HTML/CSS"]
+    }},
+    {{
+      "id": 2,
+      "role": "Frontend Developer",
+      "status": "current",
+      "salary": "$90k - $120k",
+      "duration": "2-4 years",
+      "skills": ["TypeScript", "State Management", "Performance Optimization"]
+    }},
+    {{
+      "id": 3,
+      "role": "Senior Frontend Engineer",
+      "status": "next",
+      "salary": "$130k - $170k",
+      "duration": "4-7 years",
+      "skills": ["System Design", "CI/CD", "Mentorship", "Architecture"],
+      "match": 75
+    }},
+    {{
+      "id": 4,
+      "role": "Engineering Manager",
+      "status": "future",
+      "salary": "$160k - $220k",
+      "duration": "7+ years",
+      "skills": ["Leadership", "Agile", "Team Building", "Strategic Planning"],
+      "match": 30
+    }}
+  ],
+  "recommended_courses": [
+    {{
+      "title": "Pragmatic System Design & Software Architecture",
+      "platform": "Udemy Professional",
+      "level": "Intermediate",
+      "rating": "4.9",
+      "duration": "18 hours • 45 Lectures",
+      "description": "Learn how to build highly scalable frontend architectures, handle global scaling, configure custom CDNs, implement advanced caching patterns, and optimize core web vitals."
+    }},
+    {{
+      "title": "Large-Scale Frontend UI Engineering",
+      "platform": "Frontend Masters",
+      "level": "Advanced",
+      "rating": "4.8",
+      "duration": "9 hours • 22 Lectures",
+      "description": "Deep dive into monorepos, module federation, micro-frontends, state design patterns (Zustand, Redux, XState), custom tooling/bundling setups, and design system compilation."
+    }},
+    {{
+      "title": "System Design Patterns & API Architectures",
+      "platform": "Coursera (University)",
+      "level": "Intermediate",
+      "rating": "4.7",
+      "duration": "4 weeks (3 hrs/week)",
+      "description": "Explore microservice layouts, GraphQL gateway aggregation, WebSockets/SSE streaming integrations, rate limiting, and defensive architectural layouts."
+    }}
+  ],
+  "guided_projects": [
+    {{
+      "title": "Automate Frontend Deployments with GitHub Actions",
+      "estTime": "2.5 hours",
+      "difficulty": "Intermediate",
+      "description": "Establish a complete CI/CD workflow that lints codebase formatting, runs Jest test suites, builds production assets, and deploys to a static staging URL automatically.",
+      "steps": [
+        "Create GitHub Repository Secrets mapping AWS/Vercel keys.",
+        "Author workflow YAML file with multi-job pipeline matrix.",
+        "Enable caching strategies to accelerate node dependency builds.",
+        "Establish automatic Slack/Discord build-failure warnings."
+      ]
+    }},
+    {{
+      "title": "Dockerizing a React SPA with Multi-Stage Nginx",
+      "estTime": "3.5 hours",
+      "difficulty": "Intermediate",
+      "description": "Configure multi-stage Docker builds to reduce image sizes, bundle custom Nginx servers, and configure routing proxies to achieve secure sub-second content delivery.",
+      "steps": [
+        "Write Dockerfile utilizing Alpine Node environments.",
+        "Build and compress React code assets for production deployment.",
+        "Configure custom Nginx route files to redirect requests back to index.html.",
+        "Establish local docker-compose environments with proxy servers."
+      ]
+    }},
+    {{
+      "title": "CI Regression Testing with Jest & Cypress",
+      "estTime": "4 hours",
+      "difficulty": "Advanced",
+      "description": "Implement regression checking workflows. Setup headless Chrome instances inside GitHub Actions runners to assert component layout parameters and user interactions.",
+      "steps": [
+        "Implement headless Chrome setup inside CI runners.",
+        "Author end-to-end user signup and payment flow mock scripts.",
+        "Establish automated accessibility check alerts."
+      ]
+    }}
+  ]
+}}
+"""
+    try:
+        generation_config = {"response_mime_type": "application/json"}
+        response = ai_model.generate_content(
+            prompt,
+            generation_config=generation_config
+        )
+        data = json.loads(response.text)
+        return data
+    except Exception as e:
+        logger.error(f"Gemini Career Path call failed: {e}. Falling back to default roadmap.")
+        return get_fallback_career_path()

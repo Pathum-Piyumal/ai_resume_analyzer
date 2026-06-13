@@ -6,9 +6,10 @@ import { api, SavedJob } from '../utils/api'
 
 interface SavedJobsPageProps {
   analysisResult?: any
+  onNewAnalysis?: () => void
 }
 
-export default function SavedJobsPage({ analysisResult }: SavedJobsPageProps) {
+export default function SavedJobsPage({ analysisResult, onNewAnalysis }: SavedJobsPageProps) {
   const [savedJobs, setSavedJobs] = useState<SavedJob[]>([])
   const [exploreJobs, setExploreJobs] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -46,41 +47,39 @@ export default function SavedJobsPage({ analysisResult }: SavedJobsPageProps) {
       }))
       setExploreJobs(mapped)
     } else {
-      // Fallback recommended jobs
-      setExploreJobs([
-        {
-          id: 4,
-          role: 'Staff React Engineer',
-          company: 'DevFlow Platforms',
-          location: 'Remote',
-          salary: '$160k - $190k',
-          match: 95,
-          tags: ['React', 'Next.js', 'Performance'],
-          link: 'https://linkedin.com'
-        },
-        {
-          id: 5,
-          role: 'Software Engineer (Frontend)',
-          company: 'CloudScale Inc',
-          location: 'Seattle, WA (Hybrid)',
-          salary: '$130k - $150k',
-          match: 89,
-          tags: ['TypeScript', 'Jest', 'Webpack'],
-          link: 'https://linkedin.com'
-        },
-        {
-          id: 6,
-          role: 'Frontend Architect',
-          company: 'Veloce Commerce',
-          location: 'Remote',
-          salary: '$170k - $210k',
-          match: 91,
-          tags: ['Tailwind', 'GraphQL', 'Node.js'],
-          link: 'https://linkedin.com'
-        }
-      ])
+      setExploreJobs([])
     }
   }, [analysisResult])
+
+  if (!analysisResult) {
+    return (
+      <div className="max-w-xl mx-auto mt-16 text-center space-y-6 rounded-2xl border border-white/5 bg-brand-card/45 p-12 backdrop-blur-md shadow-2xl relative overflow-hidden">
+        {/* Glow orb */}
+        <div className="absolute inset-0 bg-[radial-gradient(180px circle at 50% 50%, rgba(245,158,11,0.05), transparent 85%)]" />
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-blue/5 text-brand-lightBlue border border-brand-blue/10 relative z-10">
+          <Briefcase className="h-6 w-6 animate-pulse" />
+        </div>
+        <div className="space-y-2 relative z-10">
+          <h3 className="text-xl font-extrabold text-white tracking-tight font-sans">
+            No Job Recommendations Yet
+          </h3>
+          <p className="text-xs text-brand-textMuted max-w-xs mx-auto leading-relaxed font-sans font-light">
+            Upload your resume and a target job description first to map out your technical strengths and skills gaps, and get tailored job recommendations.
+          </p>
+        </div>
+        <div className="pt-2 relative z-10">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onNewAnalysis}
+            className="rounded-xl bg-brand-blue hover:bg-blue-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-brand-blue/20 transition-all focus:outline-none"
+          >
+            Start First Analysis
+          </motion.button>
+        </div>
+      </div>
+    )
+  }
 
   const handleUnsave = async (id: number) => {
     try {
@@ -88,6 +87,15 @@ export default function SavedJobsPage({ analysisResult }: SavedJobsPageProps) {
       setSavedJobs(prev => prev.filter(job => job.id !== id))
     } catch (err) {
       console.error("Failed to unsave job", err)
+    }
+  }
+
+  const handleStatusChange = async (id: number, newStatus: any) => {
+    try {
+      const updated = await api.updateSavedJobStatus(id, newStatus)
+      setSavedJobs(prev => prev.map(job => job.id === id ? { ...job, status: updated.status } : job))
+    } catch (err) {
+      console.error("Failed to update job status", err)
     }
   }
 
@@ -294,6 +302,20 @@ export default function SavedJobsPage({ analysisResult }: SavedJobsPageProps) {
                       <div className="flex items-center gap-2 text-[11px] text-slate-300 font-sans">
                         <DollarSign className="h-3.5 w-3.5 text-slate-500" />
                         {(job as any).salary || '$130k - $160k'}
+                      </div>
+                      <div className="flex items-center gap-2 text-[11px] text-slate-300 font-sans select-none">
+                        <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Status:</span>
+                        <select 
+                          value={job.status} 
+                          onChange={(e) => handleStatusChange(job.id, e.target.value)}
+                          className="bg-[#121626] border border-white/10 rounded-lg px-2 py-1 text-[10px] font-bold text-white focus:outline-none focus:border-brand-blue cursor-pointer transition-colors hover:border-white/20"
+                        >
+                          <option value="saved">Saved</option>
+                          <option value="applied">Applied</option>
+                          <option value="interviewing">Interviewing</option>
+                          <option value="offer">Offer</option>
+                          <option value="rejected">Rejected</option>
+                        </select>
                       </div>
                     </div>
                     

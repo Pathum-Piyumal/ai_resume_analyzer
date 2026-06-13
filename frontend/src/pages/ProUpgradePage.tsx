@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { CheckCircle2, Zap, Shield, User } from 'lucide-react'
-import { motion, Variants } from 'framer-motion'
+import { CheckCircle2, Zap, Shield, User, CreditCard, X, Sparkles } from 'lucide-react'
+import { motion, AnimatePresence, Variants } from 'framer-motion'
 import NumberTicker from '../../components/NumberTicker'
+import { api } from '../utils/api'
 
 interface ProUpgradePageProps {
   onUpgradeClick?: (plan: string) => void
@@ -9,6 +10,42 @@ interface ProUpgradePageProps {
 
 export default function ProUpgradePage({ onUpgradeClick }: ProUpgradePageProps) {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly')
+  const [selectedPlan, setSelectedPlan] = useState<any>(null)
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
+  const [isUpgrading, setIsUpgrading] = useState(false)
+  const [upgradeSuccess, setUpgradeSuccess] = useState(false)
+  const [cardNumber, setCardNumber] = useState('4242 4242 4242 4242')
+  const [cardExpiry, setCardExpiry] = useState('12/28')
+  const [cardCvc, setCardCvc] = useState('123')
+  const [cardName, setCardName] = useState('Job Seeker')
+
+  const handleUpgradeClick = (planName: string) => {
+    const plan = plans.find(p => p.name === planName)
+    setSelectedPlan(plan)
+    setIsCheckoutOpen(true)
+  }
+
+  const handleConfirmCheckout = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsUpgrading(true)
+    try {
+      await api.upgradeToPro()
+      setUpgradeSuccess(true)
+    } catch (err) {
+      console.error("Upgrade failed", err)
+      alert("Billing simulation failed. Please try again.")
+    } finally {
+      setIsUpgrading(false)
+    }
+  }
+
+  const handleCloseSuccess = () => {
+    setIsCheckoutOpen(false)
+    setUpgradeSuccess(false)
+    if (selectedPlan && onUpgradeClick) {
+      onUpgradeClick(selectedPlan.name)
+    }
+  }
 
   const plans = [
     {
@@ -45,10 +82,10 @@ export default function ProUpgradePage({ onUpgradeClick }: ProUpgradePageProps) 
         "Mock Interview Q&A matching",
         "Priority email support"
       ],
-      buttonText: "Join Waitlist",
+      buttonText: "Upgrade Now",
       popular: true,
       color: "blue",
-      available: false
+      available: true
     },
     {
       name: "Elite",
@@ -252,25 +289,183 @@ export default function ProUpgradePage({ onUpgradeClick }: ProUpgradePageProps) 
                 </ul>
 
                 <button
-                  onClick={() => plan.available !== false && onUpgradeClick?.(plan.name)}
-                  disabled={plan.available === false}
+                  onClick={() => plan.available !== false && plan.name !== 'Free' && handleUpgradeClick(plan.name)}
+                  disabled={plan.available === false || plan.name === 'Free'}
                   className={`mt-10 block w-full rounded-xl px-4 py-3.5 text-center text-sm font-bold shadow-lg transition-all active:scale-[0.98] focus:outline-none ${
-                    plan.available === false
-                      ? 'bg-brand-dark border border-white/10 text-brand-textMuted cursor-not-allowed'
-                      : isBlue
-                        ? 'bg-brand-blue text-white hover:bg-blue-600 shadow-brand-blue/25'
-                        : isEmerald
-                          ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-emerald-500/20'
-                          : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
+                    plan.name === 'Free'
+                      ? 'bg-slate-800/40 border border-white/5 text-brand-textMuted cursor-default'
+                      : plan.available === false
+                        ? 'bg-brand-dark border border-white/10 text-brand-textMuted cursor-not-allowed'
+                        : isBlue
+                          ? 'bg-brand-blue text-white hover:bg-blue-600 shadow-brand-blue/25'
+                          : isEmerald
+                            ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-emerald-500/20'
+                            : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                   }`}
                 >
-                  {plan.buttonText}
+                  {plan.name === 'Free' ? 'Current Plan' : plan.buttonText}
                 </button>
               </div>
             </motion.div>
           )
         })}
       </div>
+
+      {/* Checkout Simulation & Success Modals */}
+      <AnimatePresence>
+        {isCheckoutOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => !isUpgrading && !upgradeSuccess && setIsCheckoutOpen(false)}
+              className="absolute inset-0 bg-[#060814]/85 backdrop-blur-md"
+            />
+
+            {/* Modal Body */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md rounded-3xl border border-white/10 bg-[#0f1225] p-6 shadow-2xl z-10 space-y-6 text-left overflow-hidden"
+            >
+              {!upgradeSuccess ? (
+                <>
+                  {/* Close button */}
+                  <button
+                    onClick={() => !isUpgrading && setIsCheckoutOpen(false)}
+                    className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors focus:outline-none"
+                    disabled={isUpgrading}
+                    title="Close"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-xl bg-brand-blue/15 text-brand-lightBlue">
+                        <CreditCard className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-white font-sans">Checkout Simulation</h3>
+                        <p className="text-[11px] text-brand-textMuted font-sans">Simulate a payment to upgrade your subscription.</p>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-white/5 pt-4">
+                      {/* Subscription Details summary */}
+                      <div className="flex justify-between items-center bg-[#161b33] border border-white/5 rounded-2xl p-4 mb-4">
+                        <div>
+                          <p className="text-xs font-bold text-white">{selectedPlan?.name} Subscription</p>
+                          <p className="text-[10px] text-brand-textMuted mt-0.5">Billed {billingCycle}</p>
+                        </div>
+                        <p className="text-lg font-extrabold text-brand-lightBlue">
+                          {billingCycle === 'monthly' ? selectedPlan?.priceMonthly : selectedPlan?.priceAnnual}
+                        </p>
+                      </div>
+
+                      {/* Payment Form */}
+                      <form onSubmit={handleConfirmCheckout} className="space-y-4 font-sans">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Cardholder Name</label>
+                          <input
+                            type="text"
+                            required
+                            value={cardName}
+                            onChange={(e) => setCardName(e.target.value)}
+                            className="w-full bg-[#121626]/80 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 outline-none transition-all"
+                            disabled={isUpgrading}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Card Number</label>
+                          <input
+                            type="text"
+                            required
+                            value={cardNumber}
+                            onChange={(e) => setCardNumber(e.target.value)}
+                            className="w-full bg-[#121626]/80 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 outline-none transition-all font-mono"
+                            disabled={isUpgrading}
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Expiration Date</label>
+                            <input
+                              type="text"
+                              required
+                              placeholder="MM/YY"
+                              value={cardExpiry}
+                              onChange={(e) => setCardExpiry(e.target.value)}
+                              className="w-full bg-[#121626]/80 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 outline-none transition-all font-mono text-center"
+                              disabled={isUpgrading}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">CVV</label>
+                            <input
+                              type="text"
+                              required
+                              maxLength={3}
+                              value={cardCvc}
+                              onChange={(e) => setCardCvc(e.target.value)}
+                              className="w-full bg-[#121626]/80 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 outline-none transition-all font-mono text-center"
+                              disabled={isUpgrading}
+                            />
+                          </div>
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={isUpgrading}
+                          className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand-blue hover:bg-blue-600 py-3 text-xs font-bold text-white shadow-lg shadow-brand-blue/15 transition-all mt-6 active:scale-[0.98] disabled:opacity-50"
+                        >
+                          {isUpgrading ? (
+                            <>
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                              <span>Processing transaction...</span>
+                            </>
+                          ) : (
+                            <span>Simulate Checkout & Upgrade</span>
+                          )}
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="text-center py-6 space-y-4"
+                >
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <Sparkles className="h-6 w-6 animate-pulse" />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <h3 className="text-lg font-bold text-white tracking-tight font-sans">Upgrade Successful!</h3>
+                    <p className="text-xs text-brand-textMuted font-sans max-w-xs mx-auto">
+                      Congratulations! You have unlocked ResumeIQ Pro. Enjoy unlimited analyses, cover letters, and personalized roadmaps.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleCloseSuccess}
+                    className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-600 py-3 text-xs font-bold text-white shadow-lg shadow-emerald-500/20 transition-colors mt-6"
+                  >
+                    Get Started with Pro
+                  </button>
+                </motion.div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </motion.div>
   )

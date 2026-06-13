@@ -41,9 +41,9 @@ export default function PricingSection({ onNavigate }: PricingSectionProps) {
         "Mock Interview Q&A matching",
         "Priority email support"
       ],
-      buttonText: "Join Waitlist",
+      buttonText: "Upgrade Now",
       popular: true,
-      available: false
+      available: true
     },
     {
       name: "Elite",

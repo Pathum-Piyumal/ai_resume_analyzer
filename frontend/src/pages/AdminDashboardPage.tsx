@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { 
   Users, 
   FileText, 
@@ -12,6 +13,7 @@ import {
 } from 'lucide-react'
 import { motion, Variants } from 'framer-motion'
 import NumberTicker from '../../components/NumberTicker'
+import { api } from '../utils/api'
 
 interface AdminDashboardPageProps {
   onNewAnalysis: () => void
@@ -41,6 +43,26 @@ const itemVariants: Variants = {
 }
 
 export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPageProps) {
+  const [stats, setStats] = useState<{ total_users: number, total_scans: number, avg_score: number, cpu_load: number, latency: number } | null>(null)
+  const [recentAnalyses, setRecentAnalyses] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      try {
+        const statsData = await api.getAdminStats()
+        const scansData = await api.getAdminScans()
+        setStats(statsData)
+        setRecentAnalyses(scansData)
+      } catch (err) {
+        console.error("Failed to load admin dashboard data", err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchAdminData()
+  }, [])
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget
     const rect = card.getBoundingClientRect()
@@ -49,37 +71,6 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
     card.style.setProperty('--mouse-x', `${x}px`)
     card.style.setProperty('--mouse-y', `${y}px`)
   }
-
-  // Mock recent analyses database
-  const recentAnalyses = [
-    {
-      id: '1',
-      userName: "Alex Rivera",
-      userAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop",
-      fileName: "Alex_Rivera_CV.pdf",
-      jobTitle: "Senior Dev",
-      score: 85,
-      date: "Oct 24, 2024"
-    },
-    {
-      id: '2',
-      userName: "Sophia Chen",
-      userAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop",
-      fileName: "sophia_resume.pdf",
-      jobTitle: "UX Designer",
-      score: 72,
-      date: "Oct 23, 2024"
-    },
-    {
-      id: '3',
-      userName: "Marcus Vance",
-      userAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop",
-      fileName: "mv_product_manager.pdf",
-      jobTitle: "Product Manager",
-      score: 68,
-      date: "Oct 22, 2024"
-    }
-  ]
 
   // Score bar helper
   const getScoreColor = (score: number) => {
@@ -92,6 +83,15 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
     if (score >= 80) return 'text-emerald-400 font-mono font-semibold'
     if (score >= 60) return 'text-amber-400 font-mono font-semibold'
     return 'text-rose-400 font-mono font-semibold'
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-blue border-t-transparent" />
+        <p className="text-xs text-brand-textMuted font-sans">Compiling system diagnostics...</p>
+      </div>
+    )
   }
 
   return (
@@ -142,7 +142,7 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
               </div>
             </div>
             <p className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-none font-sans">
-              <NumberTicker value={12450} />
+              <NumberTicker value={stats?.total_users ?? 0} />
             </p>
           </div>
           <div className="p-3 bg-slate-800 text-slate-400 rounded-xl shrink-0 relative z-10">
@@ -177,7 +177,7 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
               </div>
             </div>
             <p className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-none font-sans">
-              <NumberTicker value={45200} />
+              <NumberTicker value={stats?.total_scans ?? 0} />
             </p>
           </div>
           <div className="p-3 bg-slate-800 text-slate-400 rounded-xl shrink-0 relative z-10">
@@ -206,7 +206,7 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
               </span>
             </div>
             <p className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-none font-sans">
-              <NumberTicker value={68} suffix="%" />
+              <NumberTicker value={stats?.avg_score ?? 0} suffix="%" />
             </p>
           </div>
           <div className="p-3 bg-slate-800 text-slate-400 rounded-xl shrink-0 relative z-10">
@@ -360,7 +360,7 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
             </div>
             
             <p className="text-[11px] text-brand-textMuted leading-relaxed font-sans font-light">
-              System performance is optimal. AI models processed <span className="text-white font-semibold"><NumberTicker value={1240} /></span> requests in the last hour with an average latency of <span className="text-brand-lightBlue font-mono"><NumberTicker value={240} suffix="ms" /></span>.
+              System performance is optimal. AI models processed <span className="text-white font-semibold"><NumberTicker value={stats?.total_scans ?? 0} /></span> requests in the last hour with an average latency of <span className="text-brand-lightBlue font-mono"><NumberTicker value={stats?.latency ?? 0} suffix="ms" /></span>.
             </p>
           </div>
 
@@ -368,13 +368,13 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
           <div className="space-y-2 pt-2 border-t border-white/5 relative z-10">
             <div className="flex items-center justify-between text-[10px] font-bold text-slate-300">
               <span className="font-sans">CPU Load</span>
-              <span className="font-mono text-brand-lightBlue"><NumberTicker value={43} suffix="%" /></span>
+              <span className="font-mono text-brand-lightBlue"><NumberTicker value={stats?.cpu_load ?? 0} suffix="%" /></span>
             </div>
             <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden border border-white/5">
               <motion.div 
                 className="h-full bg-brand-lightBlue rounded-full shadow-lg"
                 initial={{ width: 0 }}
-                animate={{ width: "43%" }}
+                animate={{ width: `${stats?.cpu_load ?? 0}%` }}
                 transition={{ duration: 1, ease: "easeOut", delay: 0.5 }}
               />
             </div>

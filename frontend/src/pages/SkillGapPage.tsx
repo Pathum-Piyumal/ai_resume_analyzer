@@ -70,45 +70,71 @@ function GaugeWidget({ score, title, subtitle, onMouseMove }: GaugeWidgetProps) 
 
 interface SkillGapPageProps {
   analysisResult?: any
+  onNewAnalysis?: () => void
 }
 
-export default function SkillGapPage({ analysisResult }: SkillGapPageProps) {
-  const skillGaps = []
-
-  if (analysisResult) {
-    // Pull from real scan
-    const matched = analysisResult.resume_skills || []
-    const missing = analysisResult.missing_skills || []
-
-    matched.slice(0, 2).forEach((skill: string) => {
-      skillGaps.push({
-        name: skill.toUpperCase(),
-        yourLevel: 90,
-        required: 80,
-        badge: "Strength",
-        isAhead: true
-      })
-    })
-
-    missing.slice(0, 2).forEach((skill: string) => {
-      skillGaps.push({
-        name: skill.toUpperCase(),
-        yourLevel: 55,
-        required: 85,
-        badge: "Skill Gap",
-        isAhead: false
-      })
-    })
-  }
-
-  if (skillGaps.length === 0) {
-    skillGaps.push(
-      { name: "React / Frontend", yourLevel: 90, required: 85, badge: "+5% Ahead", isAhead: true },
-      { name: "Python / Backend", yourLevel: 75, required: 85, badge: "-10% Gap", isAhead: false },
-      { name: "System Design", yourLevel: 70, required: 85, badge: "-15% Gap", isAhead: false },
-      { name: "Cloud (AWS/GCP)", yourLevel: 65, required: 85, badge: "-20% Gap", isAhead: false }
+export default function SkillGapPage({ analysisResult, onNewAnalysis }: SkillGapPageProps) {
+  if (!analysisResult) {
+    return (
+      <div className="max-w-xl mx-auto mt-16 text-center space-y-6 rounded-2xl border border-white/5 bg-brand-card/45 p-12 backdrop-blur-md shadow-2xl relative overflow-hidden">
+        {/* Glow orb */}
+        <div className="absolute inset-0 bg-[radial-gradient(180px circle at 50% 50%, rgba(245,158,11,0.05), transparent 85%)]" />
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/5 text-amber-500 border border-amber-500/10 relative z-10">
+          <Award className="h-6 w-6 animate-pulse" />
+        </div>
+        <div className="space-y-2 relative z-10">
+          <h3 className="text-xl font-extrabold text-white tracking-tight font-sans">
+            No Resume Analyzed Yet
+          </h3>
+          <p className="text-xs text-brand-textMuted max-w-xs mx-auto leading-relaxed font-sans font-light">
+            Upload your resume and a target job description first to map out your technical strengths and skills gaps.
+          </p>
+        </div>
+        <div className="pt-2 relative z-10">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onNewAnalysis}
+            className="rounded-xl bg-brand-blue hover:bg-blue-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-brand-blue/20 transition-all focus:outline-none"
+          >
+            Start First Analysis
+          </motion.button>
+        </div>
+      </div>
     )
   }
+
+  const matched = analysisResult.resume_skills || []
+  const missing = analysisResult.missing_skills || []
+
+  const skillGaps = [
+    ...matched.slice(0, 6).map((skill: string) => ({
+      name: skill.toUpperCase(),
+      yourLevel: 90,
+      required: 80,
+      badge: "Strength",
+      isAhead: true
+    })),
+    ...missing.slice(0, 6).map((skill: string) => ({
+      name: skill.toUpperCase(),
+      yourLevel: 45,
+      required: 85,
+      badge: "Skill Gap",
+      isAhead: false
+    }))
+  ]
+
+  const jobTitle = analysisResult.jobs?.[0]?.title || analysisResult.file_name?.replace('.pdf', '').replace(/[-_]/g, ' ').toUpperCase() || 'Target Role'
+  const strengthsCount = matched.length
+  const gapsCount = missing.length
+
+  const techScore = Math.round(analysisResult.match_score)
+  const softScore = 80 + Math.min(20, strengthsCount * 2)
+  const totalSkillsCount = strengthsCount + gapsCount
+  const toolsScore = totalSkillsCount > 0 ? Math.round((strengthsCount / totalSkillsCount) * 100) : 0
+  
+  const hasCerts = analysisResult.resume_text_preview?.toLowerCase().includes('cert') || false
+  const certsScore = hasCerts ? 85 : 30
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget
@@ -159,7 +185,7 @@ export default function SkillGapPage({ analysisResult }: SkillGapPageProps) {
           Skill Gap Analysis
         </h1>
         <p className="text-xs sm:text-sm text-brand-textMuted font-sans font-light leading-relaxed max-w-3xl">
-          Comparing your current profile against the <span className="text-slate-200 font-semibold">Senior Full-Stack Engineer</span> requirements for <span className="text-slate-200 font-semibold">Global Tech Systems</span>. We've identified 3 critical gaps and 5 areas of expertise.
+          Comparing your current profile against the <span className="text-slate-200 font-semibold">{jobTitle}</span> requirements. We've identified <span className="text-slate-200 font-semibold">{gapsCount} critical gaps</span> and <span className="text-slate-200 font-semibold">{strengthsCount} areas of expertise</span>.
         </p>
       </motion.div>
 
@@ -358,10 +384,10 @@ export default function SkillGapPage({ analysisResult }: SkillGapPageProps) {
 
       {/* 3. Bottom Gauge Widget Row */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
-        <GaugeWidget score={85} title="Technical Skills" subtitle="Foundational Core" onMouseMove={handleMouseMove} />
-        <GaugeWidget score={92} title="Soft Skills" subtitle="EQ & Leadership" onMouseMove={handleMouseMove} />
-        <GaugeWidget score={54} title="Tools" subtitle="Platform Proficiency" onMouseMove={handleMouseMove} />
-        <GaugeWidget score={30} title="Certifications" subtitle="Industry Validation" onMouseMove={handleMouseMove} />
+        <GaugeWidget score={techScore} title="Technical Skills" subtitle="Foundational Core" onMouseMove={handleMouseMove} />
+        <GaugeWidget score={softScore} title="Soft Skills" subtitle="EQ & Leadership" onMouseMove={handleMouseMove} />
+        <GaugeWidget score={toolsScore} title="Tools" subtitle="Platform Proficiency" onMouseMove={handleMouseMove} />
+        <GaugeWidget score={certsScore} title="Certifications" subtitle="Industry Validation" onMouseMove={handleMouseMove} />
       </motion.div>
 
     </motion.div>
