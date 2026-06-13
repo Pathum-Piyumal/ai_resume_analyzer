@@ -15,6 +15,7 @@ import UserDashboardPage from './pages/UserDashboardPage'
 import SignInPage from './pages/public/SignInPage'
 import SignUpPage from './pages/public/SignUpPage'
 import ForgotPasswordPage from './pages/public/ForgotPasswordPage'
+import ResetPasswordPage from './pages/public/ResetPasswordPage'
 import PrivacyPolicyPage from './pages/public/PrivacyPolicyPage'
 import TermsOfServicePage from './pages/public/TermsOfServicePage'
 import SettingsPage from './pages/SettingsPage'
@@ -44,14 +45,16 @@ export interface FullAnalysisResult extends AnalysisResult {
   score?: number
   matched?: string[]
   missing?: string[]
+  scanned_at?: string
 }
 
 export default function App() {
-  const [view, setView] = useState<'landing' | 'signin' | 'signup' | 'forgot' | 'app' | 'privacy' | 'terms' | 'support'>('landing')
+  const [view, setView] = useState<'landing' | 'signin' | 'signup' | 'forgot' | 'reset-password' | 'app' | 'privacy' | 'terms' | 'support'>('landing')
   const [appTab, setAppTab] = useState<string>('dashboard')
   const [userRole, setUserRole] = useState<'job_seeker' | 'admin'>('job_seeker')
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [analysisResult, setAnalysisResult] = useState<FullAnalysisResult | null>(null)
+  const [resetToken, setResetToken] = useState<string>('')
 
   // ── Theme State ──────────────────────────────────────────────────────────
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -60,6 +63,17 @@ export default function App() {
 
   // Check user session on app mount
   useEffect(() => {
+    // 1. Check if we have a password reset token in the URL first
+    const params = new URLSearchParams(window.location.search)
+    const token = params.get('reset_token')
+    if (token) {
+      setResetToken(token)
+      setView('reset-password')
+      // Clean query params from URL without refreshing page
+      window.history.replaceState({}, document.title, window.location.pathname)
+      return
+    }
+
     const checkSession = async () => {
       const token = localStorage.getItem('resumeiq-auth-token')
       if (token) {
@@ -71,6 +85,31 @@ export default function App() {
           // Try to sync with user setting preferred theme
           const settings = await api.getSettings()
           setTheme(settings.theme as 'dark' | 'light')
+
+          // --- FETCH USER'S LATEST SCAN ---
+          if (user.role === 'job_seeker') {
+            try {
+              const history = await api.getScanHistory()
+              if (history && history.length > 0) {
+                const latest = history[0]
+                const detail = await api.getScanDetail(latest.id)
+                const result = typeof detail.parsed_data === 'string' 
+                  ? JSON.parse(detail.parsed_data) 
+                  : detail.parsed_data
+                setAnalysisResult({
+                  ...result,
+                  file_name: detail.file_name,
+                  fileName: detail.file_name,
+                  score: detail.match_score,
+                  matched: result.resume_skills || result.matched_skills || [],
+                  missing: result.missing_skills || [],
+                  scanned_at: detail.scanned_at
+                })
+              }
+            } catch (scanErr) {
+              console.error("Failed to load user latest scan on mount:", scanErr)
+            }
+          }
         } catch (err) {
           // Token expired or invalid
           localStorage.removeItem('resumeiq-auth-token')
@@ -117,7 +156,8 @@ export default function App() {
       fileName: fileName,
       score: result.match_score,
       matched: result.resume_skills,
-      missing: result.missing_skills
+      missing: result.missing_skills,
+      scanned_at: new Date().toISOString()
     })
     setAppTab('analysis')
   }
@@ -147,7 +187,8 @@ export default function App() {
       fileName: row.fileName,
       score: row.score,
       matched: row.matched,
-      missing: row.missing
+      missing: row.missing,
+      scanned_at: row.scanned_at
     })
     setAppTab('analysis')
   }
@@ -236,6 +277,22 @@ export default function App() {
             className="w-full min-h-screen"
           >
             <ForgotPasswordPage 
+              onBackToLogin={() => setView('signin')}
+            />
+          </motion.div>
+        )
+      case 'reset-password':
+        return (
+          <motion.div
+            key="reset-password"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className="w-full min-h-screen"
+          >
+            <ResetPasswordPage 
+              token={resetToken}
               onBackToLogin={() => setView('signin')}
             />
           </motion.div>
@@ -373,12 +430,12 @@ export default function App() {
 
                       {/* Tab: Skill Gap Analysis */}
                       {(appTab === 'skillgap' || appTab === 'keywords') && (
-                        <SkillGapPage analysisResult={analysisResult} />
+                        <SkillGapPage analysisResult={analysisResult} onNewAnalysis={handleReset} />
                       )}
 
                       {/* Tab: Suggestions & Improvements */}
                       {appTab === 'formatting' && (
-                        <ImprovementsPage analysisResult={analysisResult} />
+                        <ImprovementsPage analysisResult={analysisResult} onNewAnalysis={handleReset} />
                       )}
 
                       {/* Tab: Analysis History list */}
@@ -396,7 +453,7 @@ export default function App() {
 
                       {/* Tab: Saved Jobs */}
                       {appTab === 'savedjobs' && (
-                        <SavedJobsPage analysisResult={analysisResult} />
+                        <SavedJobsPage analysisResult={analysisResult} onNewAnalysis={handleReset} />
                       )}
 
                       {/* Tab: Settings */}
