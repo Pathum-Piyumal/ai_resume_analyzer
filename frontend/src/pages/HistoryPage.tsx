@@ -23,6 +23,8 @@ export interface HistoryRow {
   matched: string[]
   missing: string[]
   iconType: 'code' | 'manager' | 'frontend'
+  parsed_data?: any
+  scanned_at?: string
 }
 
 interface HistoryPageProps {
@@ -31,23 +33,6 @@ interface HistoryPageProps {
 }
 
 import { api } from '../utils/api'
-
-export interface HistoryRow {
-  id: string
-  jobTitle: string
-  date: string
-  score: number
-  fileName: string
-  matched: string[]
-  missing: string[]
-  iconType: 'code' | 'manager' | 'frontend'
-  parsed_data?: any
-}
-
-interface HistoryPageProps {
-  onViewAnalysis: (row: HistoryRow) => void
-  onNewAnalysis: () => void
-}
 
 export default function HistoryPage({ onViewAnalysis, onNewAnalysis }: HistoryPageProps) {
   const [historyRows, setHistoryRows] = useState<HistoryRow[]>([])
@@ -60,7 +45,7 @@ export default function HistoryPage({ onViewAnalysis, onNewAnalysis }: HistoryPa
         const summaries = await api.getScanHistory()
         const rows = summaries.map((summary) => ({
           id: String(summary.id),
-          jobTitle: summary.file_name.replace('.pdf', ''),
+          jobTitle: summary.job_title || summary.file_name.replace('.pdf', '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
           date: new Date(summary.scanned_at).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
@@ -97,7 +82,8 @@ export default function HistoryPage({ onViewAnalysis, onNewAnalysis }: HistoryPa
         ...row,
         matched: parsedData.matched_skills || parsedData.matched || [],
         missing: parsedData.missing_skills || parsedData.missing || [],
-        parsed_data: parsedData
+        parsed_data: parsedData,
+        scanned_at: detail.scanned_at
       })
     } catch (err) {
       console.error("Failed to load scan details", err)
@@ -106,15 +92,18 @@ export default function HistoryPage({ onViewAnalysis, onNewAnalysis }: HistoryPa
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    // For now we don't have a DELETE scan endpoint on the backend, so we'll just filter locally.
-    // (If user requests delete endpoint on backend later, we can add it).
-    const updatedRows = historyRows.filter(row => row.id !== id)
-    setHistoryRows(updatedRows)
-    
-    // Check if the current page has become empty after deletion, adjust back if needed
-    const totalPagesAfterDeletion = Math.ceil(updatedRows.length / itemsPerPage)
-    if (currentPage > totalPagesAfterDeletion && totalPagesAfterDeletion > 0) {
-      setCurrentPage(totalPagesAfterDeletion)
+    try {
+      await api.deleteScanHistory(Number(id))
+      const updatedRows = historyRows.filter(row => row.id !== id)
+      setHistoryRows(updatedRows)
+      
+      // Check if the current page has become empty after deletion, adjust back if needed
+      const totalPagesAfterDeletion = Math.ceil(updatedRows.length / itemsPerPage)
+      if (currentPage > totalPagesAfterDeletion && totalPagesAfterDeletion > 0) {
+        setCurrentPage(totalPagesAfterDeletion)
+      }
+    } catch (err) {
+      console.error("Failed to delete scan from database", err)
     }
   }
 
@@ -122,20 +111,20 @@ export default function HistoryPage({ onViewAnalysis, onNewAnalysis }: HistoryPa
     if (type === 'code') {
       return (
         <div className="p-2 rounded-lg bg-brand-blue/10 text-brand-lightBlue shrink-0">
-          <Code2 className="h-4.5 w-4.5" />
+          <Code2 className="h-5 w-5" />
         </div>
       )
     }
     if (type === 'manager') {
       return (
         <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 shrink-0">
-          <Briefcase className="h-4.5 w-4.5" />
+          <Briefcase className="h-5 w-5" />
         </div>
       )
     }
     return (
       <div className="p-2 rounded-lg bg-rose-500/10 text-rose-400 shrink-0">
-        <PenTool className="h-4.5 w-4.5" />
+        <PenTool className="h-5 w-5" />
       </div>
     )
   }
@@ -498,7 +487,7 @@ export default function HistoryPage({ onViewAnalysis, onNewAnalysis }: HistoryPa
           />
           <div className="relative z-10">
             <div className="flex items-center gap-1.5 text-xs font-bold text-white font-sans mb-1.5">
-              <Sparkles className="h-4.5 w-4.5 text-brand-lightBlue animate-pulse" />
+              <Sparkles className="h-5 w-5 text-brand-lightBlue animate-pulse" />
               <span>Resume Optimization AI</span>
             </div>
             <p className="text-[11px] text-brand-textMuted leading-relaxed font-sans font-light">
