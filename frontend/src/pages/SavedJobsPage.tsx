@@ -135,9 +135,11 @@ export default function SavedJobsPage({ analysisResult, onNewAnalysis }: SavedJo
       (activeFilter === 'onsite' && !location.toLowerCase().includes('remote'))
     
     // Search Query Filter
+    const fallbackTags = (job as any).tags || [title.split(' ')[0] || 'Software']
     const matchesSearch = 
       title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      company.toLowerCase().includes(searchQuery.toLowerCase())
+      company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      fallbackTags.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
 
     return matchesLocation && matchesSearch
   })
