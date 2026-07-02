@@ -11,40 +11,48 @@ interface ProUpgradePageProps {
 export default function ProUpgradePage({ onUpgradeClick }: ProUpgradePageProps) {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly')
   const [selectedPlan, setSelectedPlan] = useState<any>(null)
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
-  const [isUpgrading, setIsUpgrading] = useState(false)
-  const [upgradeSuccess, setUpgradeSuccess] = useState(false)
-  const [cardNumber, setCardNumber] = useState('4242 4242 4242 4242')
-  const [cardExpiry, setCardExpiry] = useState('12/28')
-  const [cardCvc, setCardCvc] = useState('123')
-  const [cardName, setCardName] = useState('Job Seeker')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isJoining, setIsJoining] = useState(false)
+  const [joinedWaitlist, setJoinedWaitlist] = useState(false)
+  const [waitlistEmail, setWaitlistEmail] = useState('')
 
-  const handleUpgradeClick = (planName: string) => {
-    const plan = plans.find(p => p.name === planName)
-    setSelectedPlan(plan)
-    setIsCheckoutOpen(true)
+  const handleUpgradeClick = async (planName: string) => {
+    if (planName === 'Pro') {
+      try {
+        setIsJoining(true)
+        const sessionData = await api.createStripeCheckoutSession()
+        window.location.href = sessionData.url
+      } catch (err) {
+        console.error("Failed to redirect to checkout:", err)
+        alert("Unable to reach checkout portal. Please try again later.")
+      } finally {
+        setIsJoining(false)
+      }
+    } else {
+      const plan = plans.find(p => p.name === planName)
+      setSelectedPlan(plan)
+      setIsModalOpen(true)
+    }
   }
 
-  const handleConfirmCheckout = async (e: React.FormEvent) => {
+  const handleJoinWaitlist = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsUpgrading(true)
+    setIsJoining(true)
     try {
-      await api.upgradeToPro()
-      setUpgradeSuccess(true)
+      // Simulate registering to waitlist database delay
+      await new Promise((resolve) => setTimeout(resolve, 800))
+      setJoinedWaitlist(true)
     } catch (err) {
-      console.error("Upgrade failed", err)
-      alert("Billing simulation failed. Please try again.")
+      console.error("Failed to join waitlist", err)
     } finally {
-      setIsUpgrading(false)
+      setIsJoining(false)
     }
   }
 
-  const handleCloseSuccess = () => {
-    setIsCheckoutOpen(false)
-    setUpgradeSuccess(false)
-    if (selectedPlan && onUpgradeClick) {
-      onUpgradeClick(selectedPlan.name)
-    }
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setJoinedWaitlist(false)
+    setWaitlistEmail('')
   }
 
   const plans = [
@@ -313,14 +321,14 @@ export default function ProUpgradePage({ onUpgradeClick }: ProUpgradePageProps) 
 
       {/* Checkout Simulation & Success Modals */}
       <AnimatePresence>
-        {isCheckoutOpen && (
+        {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => !isUpgrading && !upgradeSuccess && setIsCheckoutOpen(false)}
+              onClick={() => !isJoining && handleCloseModal()}
               className="absolute inset-0 bg-[#060814]/85 backdrop-blur-md"
             />
 
@@ -329,15 +337,15 @@ export default function ProUpgradePage({ onUpgradeClick }: ProUpgradePageProps) 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-md rounded-3xl border border-white/10 bg-[#0f1225] p-6 shadow-2xl z-10 space-y-6 text-left overflow-hidden"
+              className="relative w-full max-w-md rounded-3xl border border-white/10 bg-[#0f1225] p-6 shadow-2xl z-10 space-y-6 text-left overflow-hidden font-sans"
             >
-              {!upgradeSuccess ? (
+              {!joinedWaitlist ? (
                 <>
                   {/* Close button */}
                   <button
-                    onClick={() => !isUpgrading && setIsCheckoutOpen(false)}
+                    onClick={handleCloseModal}
                     className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors focus:outline-none"
-                    disabled={isUpgrading}
+                    disabled={isJoining}
                     title="Close"
                   >
                     <X className="h-5 w-5" />
@@ -345,92 +353,59 @@ export default function ProUpgradePage({ onUpgradeClick }: ProUpgradePageProps) 
 
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2.5 rounded-xl bg-brand-blue/15 text-brand-lightBlue">
-                        <CreditCard className="h-5 w-5" />
+                      <div className="p-2.5 rounded-xl bg-brand-blue/15 text-brand-lightBlue shrink-0">
+                        <Sparkles className="h-5 w-5 text-brand-lightBlue animate-pulse" />
                       </div>
                       <div>
-                        <h3 className="text-base font-bold text-white font-sans">Checkout Simulation</h3>
-                        <p className="text-[11px] text-brand-textMuted font-sans">Simulate a payment to upgrade your subscription.</p>
+                        <h3 className="text-base font-bold text-white font-sans">{selectedPlan?.name} Plan Coming Soon</h3>
+                        <p className="text-[11px] text-brand-textMuted font-sans">Our premium tiers are currently in development.</p>
                       </div>
                     </div>
 
-                    <div className="border-t border-white/5 pt-4">
-                      {/* Subscription Details summary */}
-                      <div className="flex justify-between items-center bg-[#161b33] border border-white/5 rounded-2xl p-4 mb-4">
-                        <div>
-                          <p className="text-xs font-bold text-white">{selectedPlan?.name} Subscription</p>
-                          <p className="text-[10px] text-brand-textMuted mt-0.5">Billed {billingCycle}</p>
+                    <div className="border-t border-white/5 pt-4 space-y-4">
+                      <p className="text-xs text-slate-300 leading-relaxed font-light font-sans">
+                        Thank you for your interest! The <span className="font-semibold text-white">{selectedPlan?.name}</span> plan is undergoing final beta testing. We are hard at work integrating live recruiter syncing, custom cover letter automation, and advanced mock interview engines.
+                      </p>
+
+                      <div className="p-3.5 rounded-2xl bg-[#161b33] border border-white/5 space-y-1">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Expected Premium Features</span>
+                        <div className="grid grid-cols-2 gap-2 pt-1 text-[10px] text-slate-300 font-sans">
+                          {selectedPlan?.features.slice(0, 4).map((feat: string, i: number) => (
+                            <div key={i} className="flex items-center gap-1.5">
+                              <CheckCircle2 className="h-3 w-3 text-brand-lightBlue shrink-0" />
+                              <span className="truncate">{feat}</span>
+                            </div>
+                          ))}
                         </div>
-                        <p className="text-lg font-extrabold text-brand-lightBlue">
-                          {billingCycle === 'monthly' ? selectedPlan?.priceMonthly : selectedPlan?.priceAnnual}
-                        </p>
                       </div>
 
-                      {/* Payment Form */}
-                      <form onSubmit={handleConfirmCheckout} className="space-y-4 font-sans">
+                      {/* Waitlist Subscription form */}
+                      <form onSubmit={handleJoinWaitlist} className="space-y-3 pt-2">
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Cardholder Name</label>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Email Address</label>
                           <input
-                            type="text"
+                            type="email"
                             required
-                            value={cardName}
-                            onChange={(e) => setCardName(e.target.value)}
-                            className="w-full bg-[#121626]/80 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 outline-none transition-all"
-                            disabled={isUpgrading}
+                            placeholder="Enter your email to join the waitlist..."
+                            value={waitlistEmail}
+                            onChange={(e) => setWaitlistEmail(e.target.value)}
+                            className="w-full bg-[#121626]/80 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 outline-none transition-all font-light font-sans"
+                            disabled={isJoining}
                           />
-                        </div>
-
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Card Number</label>
-                          <input
-                            type="text"
-                            required
-                            value={cardNumber}
-                            onChange={(e) => setCardNumber(e.target.value)}
-                            className="w-full bg-[#121626]/80 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 outline-none transition-all font-mono"
-                            disabled={isUpgrading}
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Expiration Date</label>
-                            <input
-                              type="text"
-                              required
-                              placeholder="MM/YY"
-                              value={cardExpiry}
-                              onChange={(e) => setCardExpiry(e.target.value)}
-                              className="w-full bg-[#121626]/80 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 outline-none transition-all font-mono text-center"
-                              disabled={isUpgrading}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">CVV</label>
-                            <input
-                              type="text"
-                              required
-                              maxLength={3}
-                              value={cardCvc}
-                              onChange={(e) => setCardCvc(e.target.value)}
-                              className="w-full bg-[#121626]/80 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 outline-none transition-all font-mono text-center"
-                              disabled={isUpgrading}
-                            />
-                          </div>
                         </div>
 
                         <button
                           type="submit"
-                          disabled={isUpgrading}
-                          className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand-blue hover:bg-blue-600 py-3 text-xs font-bold text-white shadow-lg shadow-brand-blue/15 transition-all mt-6 active:scale-[0.98] disabled:opacity-50"
+                          disabled={isJoining}
+                          className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand-blue hover:bg-blue-600 py-3 text-xs font-bold text-white shadow-lg shadow-brand-blue/15 transition-all mt-4 active:scale-[0.98] disabled:opacity-50"
                         >
-                          {isUpgrading ? (
+                          {isJoining ? (
                             <>
                               <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                              <span>Processing transaction...</span>
+                              <span>Joining waitlist...</span>
                             </>
                           ) : (
-                            <span>Simulate Checkout & Upgrade</span>
+                            <span>Notify Me on Launch</span>
                           )}
                         </button>
                       </form>
@@ -441,24 +416,24 @@ export default function ProUpgradePage({ onUpgradeClick }: ProUpgradePageProps) 
                 <motion.div
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className="text-center py-6 space-y-4"
+                  className="text-center py-6 space-y-4 font-sans"
                 >
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    <Sparkles className="h-6 w-6 animate-pulse" />
+                    <CheckCircle2 className="h-6 w-6 animate-pulse" />
                   </div>
 
                   <div className="space-y-1.5">
-                    <h3 className="text-lg font-bold text-white tracking-tight font-sans">Upgrade Successful!</h3>
-                    <p className="text-xs text-brand-textMuted font-sans max-w-xs mx-auto">
-                      Congratulations! You have unlocked ResumeIQ Pro. Enjoy unlimited analyses, cover letters, and personalized roadmaps.
+                    <h3 className="text-lg font-bold text-white tracking-tight font-sans">You're on the Waitlist!</h3>
+                    <p className="text-xs text-brand-textMuted font-sans max-w-xs mx-auto leading-relaxed">
+                      Awesome! We've registered <span className="font-semibold text-slate-200">{waitlistEmail}</span> for updates. We'll email you as soon as the premium tools go live.
                     </p>
                   </div>
 
                   <button
-                    onClick={handleCloseSuccess}
+                    onClick={handleCloseModal}
                     className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-600 py-3 text-xs font-bold text-white shadow-lg shadow-emerald-500/20 transition-colors mt-6"
                   >
-                    Get Started with Pro
+                    Back to Upgrade Page
                   </button>
                 </motion.div>
               )}

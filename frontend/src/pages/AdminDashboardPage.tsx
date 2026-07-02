@@ -355,7 +355,7 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
           />
           <div className="space-y-4 relative z-10">
             <div className="flex items-center gap-1.5 text-xs font-bold text-white font-sans">
-              <Cpu className="h-4.5 w-4.5 text-brand-lightBlue animate-pulse" />
+              <Cpu className="h-5 w-5 text-brand-lightBlue animate-pulse" />
               <span>AI Status</span>
             </div>
             
@@ -485,7 +485,7 @@ export default function AdminDashboardPage({ onNewAnalysis }: AdminDashboardPage
                       className="p-1.5 rounded-lg text-brand-textMuted hover:text-white transition-all"
                       type="button"
                     >
-                      <MoreVertical className="h-4.5 w-4.5" />
+                      <MoreVertical className="h-5 w-5" />
                     </button>
                   </td>
                 </tr>

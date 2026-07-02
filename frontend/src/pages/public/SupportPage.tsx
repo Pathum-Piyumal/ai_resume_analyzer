@@ -69,7 +69,7 @@ export default function SupportPage() {
                     className="w-full flex items-center justify-between p-4 text-left text-xs sm:text-sm font-bold text-white transition-colors"
                   >
                     <span>{faq.q}</span>
-                    <ChevronDown className={`h-4.5 w-4.5 text-brand-lightBlue transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`h-5 w-5 text-brand-lightBlue transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   <AnimatePresence initial={false}>

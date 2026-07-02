@@ -1,26 +1,71 @@
 import os
 import json
 import logging
-import google.generativeai as genai
+import asyncio
+from google import genai
+from google.genai import types
 from typing import Dict, Any, List
 
 logger = logging.getLogger(__name__)
 
-# Configure Gemini API
+# Configure Gemini API client
 API_KEY = os.getenv("GEMINI_API_KEY")
 if API_KEY:
-    genai.configure(api_key=API_KEY)
-    # Using the standard gemini-1.5-flash model
-    ai_model = genai.GenerativeModel("gemini-1.5-flash")
+    client = genai.Client(api_key=API_KEY)
 else:
-    ai_model = None
+    client = None
     logger.warning("GEMINI_API_KEY is not set. AI Resume analysis will fall back to rule-based matcher.")
+
+async def call_gemini_with_retry(prompt: str, response_mime_type: str = None) -> Any:
+    """Executes client.models.generate_content inside an async thread pool with retry logic."""
+    retries = 3
+    delay = 1.0
+    backoff_factor = 2.0
+    
+    last_exc = None
+    for attempt in range(retries):
+        try:
+            config = None
+            if response_mime_type:
+                config = types.GenerateContentConfig(response_mime_type=response_mime_type)
+            
+            # Run the synchronous generate_content in a thread pool to avoid blocking the event loop
+            response = await asyncio.to_thread(
+                client.models.generate_content,
+                model="gemini-1.5-flash",
+                contents=prompt,
+                config=config
+            )
+            return response
+        except Exception as e:
+            last_exc = e
+            logger.warning(f"Gemini call attempt {attempt + 1} failed: {e}. Retrying in {delay}s...")
+            if attempt < retries - 1:
+                await asyncio.sleep(delay)
+                delay *= backoff_factor
+            else:
+                raise last_exc
 
 def get_fallback_analysis(resume_text: str, job_description: str, resume_skills: List[str], jd_skills: List[str]) -> Dict[str, Any]:
     """Generates a rule-based matching output if the AI API is unavailable."""
     matched_skills = sorted(list(set(resume_skills) & set(jd_skills)))
     missing_skills = sorted(list(set(jd_skills) - set(resume_skills)))
     
+    # Try to guess a job title from the first few lines of the job description
+    guessed_title = "Software Engineer"
+    jd_lines = [line.strip() for line in job_description.split('\n') if line.strip()]
+    for line in jd_lines[:3]:
+        # Filter for typical title lines (e.g. not too long, contains letters)
+        clean = line.replace("#", "").replace("*", "").replace(":", "").strip()
+        if 5 <= len(clean) <= 60 and any(keyword in clean.lower() for keyword in ["engineer", "developer", "manager", "designer", "lead", "analyst", "consultant", "architect", "intern", "specialist"]):
+            guessed_title = clean
+            break
+    else:
+        if jd_lines:
+            first_line = jd_lines[0].replace("#", "").replace("*", "").strip()
+            if 5 <= len(first_line) <= 50:
+                guessed_title = first_line
+                
     # Calculate simple match score
     if len(jd_skills) > 0:
         base_score = (len(matched_skills) / len(jd_skills)) * 80
@@ -49,6 +94,7 @@ def get_fallback_analysis(resume_text: str, job_description: str, resume_skills:
         })
         
     return {
+        "job_title": guessed_title,
         "match_score": match_score,
         "matched_skills": matched_skills,
         "missing_skills": missing_skills,
@@ -64,7 +110,7 @@ def get_fallback_analysis(resume_text: str, job_description: str, resume_skills:
 
 async def analyze_resume_with_ai(resume_text: str, job_description: str, resume_skills: List[str], jd_skills: List[str]) -> Dict[str, Any]:
     """Sends the resume and job description to Google Gemini and retrieves a structured analysis."""
-    if not ai_model:
+    if not client:
         return get_fallback_analysis(resume_text, job_description, resume_skills, jd_skills)
         
     prompt = f"""
@@ -78,12 +124,14 @@ Analyze the following resume text against the target job description.
 {job_description}
 
 Provide a detailed analysis strictly adhering to the JSON schema below. 
+Determine the target role's job title from the job description and provide it as "job_title".
 Calculate an accurate ATS match score (0-100) based on skills fit, experience level, formatting conventions, and achievement strength.
 Provide 2-3 specific bullet point rewrites (before and after) based on the resume text to show quantifiable metrics and strong action verbs.
 Highlight any formatting issues that could trip up an ATS.
 
 JSON Schema Output format:
 {{
+  "job_title": "Frontend Engineer",
   "match_score": 75.5,
   "matched_skills": ["react", "typescript", "git"],
   "missing_skills": ["docker", "kubernetes", "aws"],
@@ -101,11 +149,9 @@ JSON Schema Output format:
 }}
 """
     try:
-        # Force JSON response output
-        generation_config = {"response_mime_type": "application/json"}
-        response = ai_model.generate_content(
+        response = await call_gemini_with_retry(
             prompt,
-            generation_config=generation_config
+            response_mime_type="application/json"
         )
         data = json.loads(response.text)
         return data
@@ -224,7 +270,7 @@ async def generate_career_path_with_ai(
     missing_skills: List[str]
 ) -> Dict[str, Any]:
     """Sends user profile context to Google Gemini to generate a tailored career path roadmap."""
-    if not ai_model:
+    if not client:
         return get_fallback_career_path()
         
     prompt = f"""
@@ -350,10 +396,9 @@ JSON Schema Output format:
 }}
 """
     try:
-        generation_config = {"response_mime_type": "application/json"}
-        response = ai_model.generate_content(
+        response = await call_gemini_with_retry(
             prompt,
-            generation_config=generation_config
+            response_mime_type="application/json"
         )
         data = json.loads(response.text)
         return data

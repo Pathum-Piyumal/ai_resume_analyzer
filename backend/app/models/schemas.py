@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 class BulletPointImprovement(BaseModel):
     before: str
@@ -28,3 +28,4 @@ class AnalysisResult(BaseModel):
     courses: List[CourseLink]
     jobs: List[JobLink]
     resume_text_preview: str
+    job_title: Optional[str] = None
