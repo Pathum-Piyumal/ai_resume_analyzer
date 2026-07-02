@@ -18,7 +18,8 @@ def send_reset_email(to_email: str, token: str):
     Sends a password reset recovery email to the user.
     Falls back to logging in the terminal if SMTP credentials are not configured.
     """
-    reset_link = f"http://localhost:5173/?reset_token={token}"
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip('/')
+    reset_link = f"{frontend_url}/?reset_token={token}"
     
     # 1. Fallback if not configured
     if not SMTP_HOST or not SMTP_USER or not SMTP_PASSWORD:
