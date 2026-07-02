@@ -107,6 +107,70 @@ export default function SkillGapPage({ analysisResult, onNewAnalysis }: SkillGap
   const matched = analysisResult.resume_skills || []
   const missing = analysisResult.missing_skills || []
 
+  // Get 9 actual skills from this CV analysis dynamically
+  const getDynamicCloudSkills = () => {
+    const list: { name: string; type: 'missing' | 'matched' }[] = []
+    
+    // Fill with missing first, then matched
+    missing.forEach((skill: string) => {
+      list.push({ name: skill, type: 'missing' })
+    })
+    matched.forEach((skill: string) => {
+      list.push({ name: skill, type: 'matched' })
+    })
+    
+    // Fallback static skills if the list is empty (e.g. no skills extracted)
+    const fallbacks = ["React", "TypeScript", "System Design", "Docker", "AWS", "Python", "SQL", "Git", "Kubernetes", "Next.js", "Redis", "Microservices", "CI/CD"]
+    while (list.length < 9 && fallbacks.length > 0) {
+      const fb = fallbacks.shift()!
+      if (!list.some(item => item.name.toLowerCase() === fb.toLowerCase())) {
+        list.push({ name: fb, type: Math.random() > 0.5 ? 'missing' : 'matched' })
+      }
+    }
+    
+    return list.slice(0, 9)
+  }
+
+  const cloudSkills = getDynamicCloudSkills()
+
+  const getSkillStyle = (item: { name: string; type: 'missing' | 'matched' }, isFeatured: boolean) => {
+    if (item.type === 'missing') {
+      if (isFeatured) {
+        return "bg-amber-600/10 border-amber-600/30 text-amber-500 hover:bg-amber-600/15"
+      }
+      return "bg-amber-500/5 border-amber-500/15 text-amber-400/90 hover:bg-amber-500/10 animate-pulse-slow"
+    } else {
+      if (isFeatured) {
+        return "bg-emerald-600/10 border-emerald-600/30 text-emerald-400 hover:bg-emerald-600/15"
+      }
+      const hashes = item.name.length % 2 === 0
+      if (hashes) {
+        return "bg-brand-blue/15 border-brand-blue/20 text-brand-lightBlue hover:bg-brand-blue/20"
+      }
+      return "border-white/10 text-slate-300 hover:border-white/20"
+    }
+  }
+
+  const formatSkillName = (name: string) => {
+    if (!name) return "";
+    const lower = name.toLowerCase();
+    if (["aws", "ci/cd", "nlp", "sql", "api", "rest", "ui", "ux", "html", "css", "db", "ml", "ai", "git", "sse", "jwt"].includes(lower)) {
+      return name.toUpperCase();
+    }
+    return name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
+
+  const getRecommendationText = () => {
+    if (analysisResult?.career_suggestions?.[0]) {
+      return analysisResult.career_suggestions[0]
+    }
+    if (missing.length > 0) {
+      const topMissing = missing.slice(0, 2).map((s: string) => formatSkillName(s)).join(' and ')
+      return `Focus on acquiring skills or certifications in ${topMissing}. These represent critical gaps for the target ${jobTitle} role.`
+    }
+    return `Excellent match! Your resume contains all the essential skills required for the ${jobTitle} role. Focus on formatting and polishing your experience achievements.`
+  }
+
   const skillGaps = [
     ...matched.slice(0, 6).map((skill: string) => ({
       name: skill.toUpperCase(),
@@ -301,44 +365,44 @@ export default function SkillGapPage({ analysisResult, onNewAnalysis }: SkillGap
 
               {/* Keyword tags flex cloud cluster */}
               <div className="flex flex-wrap items-center justify-center gap-3 py-3 relative min-h-[190px]">
-                {/* Featured: System Design */}
+                {/* Featured: Skill 0 */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-                  <span className="inline-flex px-7 py-3 rounded-full text-sm font-bold bg-amber-600/10 border border-amber-600/30 text-amber-500 shadow-xl shadow-amber-600/5 select-none hover:bg-amber-600/15 transition-all">
-                    System Design
+                  <span className={`inline-flex px-7 py-3 rounded-full text-sm font-bold border shadow-xl select-none transition-all ${getSkillStyle(cloudSkills[0], true)}`}>
+                    {formatSkillName(cloudSkills[0].name)}
                   </span>
                 </div>
 
                 {/* Surrounding floating tags */}
                 <div className="w-full flex justify-between gap-6 px-1 z-0">
-                  <span className="inline-flex px-4 py-2 rounded-xl text-xs font-bold bg-brand-blue/15 border border-brand-blue/20 text-brand-lightBlue select-none">
-                    Kubernetes
+                  <span className={`inline-flex px-4 py-2 rounded-xl text-xs font-bold border select-none transition-all ${getSkillStyle(cloudSkills[1], false)}`}>
+                    {formatSkillName(cloudSkills[1].name)}
                   </span>
-                  <span className="inline-flex px-3 py-1.5 rounded-lg text-[10px] border border-white/10 text-slate-300 select-none">
-                    GraphQL
+                  <span className={`inline-flex px-3 py-1.5 rounded-lg text-[10px] border select-none transition-all ${getSkillStyle(cloudSkills[2], false)}`}>
+                    {formatSkillName(cloudSkills[2].name)}
                   </span>
                 </div>
                 <div className="w-full flex justify-around gap-4 z-0 mt-2">
-                  <span className="inline-flex px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-brand-blue/10 border border-brand-blue/15 text-brand-lightBlue select-none">
-                    Next.js
+                  <span className={`inline-flex px-3.5 py-1.5 rounded-xl text-xs font-semibold border select-none transition-all ${getSkillStyle(cloudSkills[3], false)}`}>
+                    {formatSkillName(cloudSkills[3].name)}
                   </span>
-                  <span className="inline-flex px-2 py-0.5 rounded-lg text-[9px] border border-white/5 text-slate-500 select-none">
-                    Redis
+                  <span className={`inline-flex px-2 py-0.5 rounded-lg text-[9px] border select-none transition-all ${getSkillStyle(cloudSkills[4], false)}`}>
+                    {formatSkillName(cloudSkills[4].name)}
                   </span>
                 </div>
                 <div className="w-full flex justify-around gap-6 z-0 mt-8">
-                  <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] border border-white/10 text-slate-300 select-none">
-                    TypeScript
+                  <span className={`inline-flex px-2.5 py-1 rounded-lg text-[10px] border select-none transition-all ${getSkillStyle(cloudSkills[5], false)}`}>
+                    {formatSkillName(cloudSkills[5].name)}
                   </span>
-                  <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] border border-white/10 text-slate-400 select-none">
-                    Agile
+                  <span className={`inline-flex px-2.5 py-1 rounded-lg text-[10px] border select-none transition-all ${getSkillStyle(cloudSkills[6], false)}`}>
+                    {formatSkillName(cloudSkills[6].name)}
                   </span>
                 </div>
                 <div className="w-full flex justify-between gap-6 px-1 z-0 mt-2">
-                  <span className="inline-flex px-4.5 py-2 rounded-xl text-xs font-semibold bg-brand-blue/15 border border-brand-blue/20 text-brand-lightBlue select-none">
-                    Microservices
+                  <span className={`inline-flex px-4.5 py-2 rounded-xl text-xs font-semibold border select-none transition-all ${getSkillStyle(cloudSkills[7], false)}`}>
+                    {formatSkillName(cloudSkills[7].name)}
                   </span>
-                  <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] border border-white/10 text-slate-300 select-none">
-                    CI/CD
+                  <span className={`inline-flex px-2.5 py-1 rounded-lg text-[10px] border select-none transition-all ${getSkillStyle(cloudSkills[8], false)}`}>
+                    {formatSkillName(cloudSkills[8].name)}
                   </span>
                 </div>
               </div>
@@ -350,11 +414,7 @@ export default function SkillGapPage({ analysisResult, onNewAnalysis }: SkillGap
                   <span>AI Recommendation</span>
                 </div>
                 <p className="text-[10px] text-slate-300 leading-normal font-sans font-light">
-                  {analysisResult?.career_suggestions?.[0] || (
-                    <>
-                      Focus on <span className="font-semibold text-white">System Design</span> and <span className="font-semibold text-white">Kubernetes</span> certification. These represent 60% of the missing criteria for your target role.
-                    </>
-                  )}
+                  {getRecommendationText()}
                 </p>
 
                 {analysisResult?.courses && analysisResult.courses.length > 0 && (

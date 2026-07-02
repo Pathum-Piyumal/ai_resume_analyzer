@@ -14,6 +14,7 @@ class ScanSummaryResponse(BaseModel):
     file_name: str
     match_score: float
     scanned_at: datetime
+    job_title: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -26,6 +27,7 @@ class ScanDetailResponse(BaseModel):
     job_description: str
     parsed_data: Dict[str, Any]
     scanned_at: datetime
+    job_title: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -37,7 +39,21 @@ def get_scan_history(
 ):
     """Retrieve all past scan summaries for the logged-in user."""
     statement = select(ResumeScan).where(ResumeScan.user_id == current_user.id).order_by(ResumeScan.scanned_at.desc())
-    return db.exec(statement).all()
+    scans = db.exec(statement).all()
+    results = []
+    for s in scans:
+        parsed = s.parsed_data or {}
+        job_title = parsed.get("job_title") or s.file_name.replace(".pdf", "").replace("_", " ").replace("-", " ").title()
+        results.append(
+            ScanSummaryResponse(
+                id=s.id,
+                file_name=s.file_name,
+                match_score=s.match_score,
+                scanned_at=s.scanned_at,
+                job_title=job_title
+            )
+        )
+    return results
 
 class StatsResponse(BaseModel):
     total_scans: int
@@ -80,7 +96,7 @@ def get_user_stats(
         
         # Aggregate skills from parsed_data
         parsed = s.parsed_data or {}
-        matched = parsed.get("matched_skills", [])
+        matched = parsed.get("matched_skills") or parsed.get("resume_skills") or []
         missing = parsed.get("missing_skills", [])
         
         for m in matched:
@@ -143,7 +159,18 @@ def get_scan_detail(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Scan record not found"
         )
-    return scan
+    parsed = scan.parsed_data or {}
+    job_title = parsed.get("job_title") or scan.file_name.replace(".pdf", "").replace("_", " ").replace("-", " ").title()
+    return ScanDetailResponse(
+        id=scan.id,
+        file_name=scan.file_name,
+        match_score=scan.match_score,
+        resume_text=scan.resume_text,
+        job_description=scan.job_description,
+        parsed_data=scan.parsed_data,
+        scanned_at=scan.scanned_at,
+        job_title=job_title
+    )
 
 @router.delete("/{scan_id}", status_code=status.HTTP_200_OK)
 def delete_scan(

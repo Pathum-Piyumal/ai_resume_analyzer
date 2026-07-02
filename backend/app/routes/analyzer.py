@@ -34,6 +34,25 @@ async def analyze_resume(
             detail="Job description cannot be empty"
         )
 
+    # Enforce maximum size constraint (5MB) and check empty file
+    MAX_FILE_SIZE = 5 * 1024 * 1024
+    file_size = getattr(resume, "size", None)
+    if file_size is None:
+        resume.file.seek(0, 2)
+        file_size = resume.file.tell()
+        resume.file.seek(0)
+
+    if file_size > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail="File size exceeds the 5MB maximum limit."
+        )
+    if file_size == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded file is empty."
+        )
+
     # 2. Extract text from PDF
     resume_text = await extract_text(resume)
     
@@ -80,7 +99,8 @@ async def analyze_resume(
         career_suggestions=ai_analysis.get("career_suggestions", []),
         courses=integration_links.get("courses", []),
         jobs=integration_links.get("jobs", []),
-        resume_text_preview=resume_text[:300]
+        resume_text_preview=resume_text[:300],
+        job_title=ai_analysis.get("job_title") or resume.filename.replace(".pdf", "").replace("_", " ").replace("-", " ").title()
     )
 
 @router.post("/analyze/stream")
@@ -103,6 +123,21 @@ async def analyze_resume_stream(
             
             if not job_description.strip():
                 yield json.dumps({"status": "error", "message": "Job description cannot be empty"}) + "\n"
+                return
+
+            # Enforce maximum size constraint (5MB) and check empty file
+            MAX_FILE_SIZE = 5 * 1024 * 1024
+            file_size = getattr(resume, "size", None)
+            if file_size is None:
+                resume.file.seek(0, 2)
+                file_size = resume.file.tell()
+                resume.file.seek(0)
+
+            if file_size > MAX_FILE_SIZE:
+                yield json.dumps({"status": "error", "message": "File size exceeds the 5MB maximum limit."}) + "\n"
+                return
+            if file_size == 0:
+                yield json.dumps({"status": "error", "message": "Uploaded file is empty."}) + "\n"
                 return
             
             # Extract text from PDF
@@ -155,7 +190,8 @@ async def analyze_resume_stream(
                 "career_suggestions": ai_analysis.get("career_suggestions", []),
                 "courses": integration_links.get("courses", []),
                 "jobs": integration_links.get("jobs", []),
-                "resume_text_preview": resume_text[:300]
+                "resume_text_preview": resume_text[:300],
+                "job_title": ai_analysis.get("job_title") or resume.filename.replace(".pdf", "").replace("_", " ").replace("-", " ").title()
             }
             yield json.dumps({"status": "completed", "result": final_result}) + "\n"
             

@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api'
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -48,6 +48,7 @@ export interface AnalysisResult {
   courses: CourseLink[]
   jobs: JobLink[]
   resume_text_preview: string
+  job_title?: string
 }
 
 export interface UserResponse {
@@ -77,6 +78,7 @@ export interface ScanSummary {
   file_name: string
   match_score: number
   scanned_at: string
+  job_title?: string
 }
 
 export interface ScanDetail {
@@ -87,6 +89,7 @@ export interface ScanDetail {
   job_description: string
   parsed_data: AnalysisResult | string // parsed_data is stored as JSON string or parsed Dict
   scanned_at: string
+  job_title?: string
 }
 
 export interface DashboardStats {
@@ -311,6 +314,11 @@ export const api = {
   // Upgrade
   async upgradeToPro(): Promise<UserSettings> {
     const response = await apiClient.post<UserSettings>('/settings/upgrade')
+    return response.data
+  },
+
+  async createStripeCheckoutSession(): Promise<{ url: string; simulated: boolean }> {
+    const response = await apiClient.post<{ url: string; simulated: boolean }>('/settings/upgrade/checkout-session')
     return response.data
   },
 
