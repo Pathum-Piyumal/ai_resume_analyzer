@@ -7,3 +7,8 @@ nltk
 spacy
 scikit-learn
 python-dotenv
+pytest
+pytest-asyncio
+httpx
+google-genai
+stripe
