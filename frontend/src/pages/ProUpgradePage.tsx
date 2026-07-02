@@ -77,10 +77,10 @@ export default function ProUpgradePage({ onUpgradeClick }: ProUpgradePageProps) 
         "Mock Interview Q&A matching",
         "Priority email support"
       ],
-      buttonText: "Upgrade Now",
+      buttonText: "Coming Soon",
       popular: true,
       color: "blue",
-      available: true
+      available: false
     },
     {
       name: "Elite",
