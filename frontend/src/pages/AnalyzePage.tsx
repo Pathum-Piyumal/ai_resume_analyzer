@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Header from '../../components/Header'
 import ResumeUpload from '../../components/ResumeUpload'
 import JobDescription from '../../components/JobDescription'
@@ -22,80 +22,40 @@ export default function AnalyzePage({ onComplete }: AnalyzePageProps) {
   const [error, setError] = useState<string>('')
   const [apiResult, setApiResult] = useState<AnalysisResult | null>(null)
 
-  // Trigger real backend analysis
-  const handleAnalyze = async () => {
+  // Trigger real-time streaming backend analysis
+  const handleAnalyze = () => {
     if (!file || !jobText.trim()) return
 
     setView('loading')
     setLoadingProgress(0)
+    setLoadingStep('Parsing resume document formatting...')
     setError('')
     setApiResult(null)
 
-    try {
-      const result = await api.analyzeResume(file, jobText)
-      setApiResult(result)
-    } catch (err: any) {
-      setView('input')
-      let msg = 'An error occurred during resume analysis. Please try again.'
-      if (err.response) {
-        msg = err.response.data?.detail || msg
-      } else if (err.request) {
-        msg = 'Could not connect to the backend server. Please make sure the backend is running.'
-      } else {
-        msg = err.message || msg
+    api.analyzeResumeStream(
+      file,
+      jobText,
+      (progress, stepText) => {
+        setLoadingProgress(progress)
+        setLoadingStep(stepText)
+      },
+      (result) => {
+        setApiResult(result)
+        setLoadingProgress(100)
+        setTimeout(() => {
+          if (onComplete && file) {
+            onComplete(file.name, result)
+          } else {
+            setView('results')
+          }
+        }, 500)
+      },
+      (msg) => {
+        setView('input')
+        setError(msg)
       }
-      setError(msg)
-    }
+    )
   }
-
-  // Simulating loading steps bound to API resolution
-  useEffect(() => {
-    if (view !== 'loading') return
-
-    const steps = [
-      { max: 20, text: 'Parsing resume document formatting...' },
-      { max: 45, text: 'Extracting skills and credential entities...' },
-      { max: 70, text: 'Cross-referencing job requirements with qualifications...' },
-      { max: 90, text: 'Analyzing ATS matching compatibility...' },
-      { max: 100, text: 'Compiling final career recommendations...' }
-    ]
-
-    const interval = setInterval(() => {
-      setLoadingProgress(prev => {
-        let next = prev
-        
-        if (!apiResult) {
-          // Keep ticking up to 90% while the API call is in progress
-          if (prev < 90) {
-            next = prev + Math.floor(Math.random() * 4) + 1
-            if (next > 90) next = 90
-          }
-        } else {
-          // Speed up to 100% once we have the result
-          next = prev + Math.floor(Math.random() * 12) + 5
-          if (next >= 100) {
-            next = 100
-            clearInterval(interval)
-            setTimeout(() => {
-              if (onComplete && file) {
-                onComplete(file.name, apiResult)
-              } else {
-                setView('results')
-              }
-            }, 300)
-          }
-        }
-
-        // Find current step text
-        const currentStep = steps.find(s => next <= s.max) || steps[steps.length - 1]
-        setLoadingStep(currentStep.text)
-
-        return next
-      })
-    }, 80)
-
-    return () => clearInterval(interval)
-  }, [view, onComplete, file, apiResult])
 
   const handleReset = () => {
     setFile(null)

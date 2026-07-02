@@ -26,6 +26,10 @@ async def get_career_path(
     job_description = latest_scan.job_description
     parsed_data = latest_scan.parsed_data or {}
     
+    # Return cached career roadmap if already generated for this scan
+    if "career_roadmap" in parsed_data:
+        return parsed_data["career_roadmap"]
+        
     matched_skills = parsed_data.get("matched_skills") or parsed_data.get("resume_skills") or []
     missing_skills = parsed_data.get("missing_skills") or []
     
@@ -36,5 +40,12 @@ async def get_career_path(
         matched_skills=matched_skills,
         missing_skills=missing_skills
     )
+    
+    # Save the generated career roadmap inside the database
+    updated_data = dict(parsed_data)
+    updated_data["career_roadmap"] = career_roadmap
+    latest_scan.parsed_data = updated_data
+    db.add(latest_scan)
+    db.commit()
     
     return career_roadmap
