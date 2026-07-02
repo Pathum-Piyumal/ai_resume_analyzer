@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from app.db import get_session
 from app.models.models import User, UserSetting
 from app.services.auth_utils import get_current_user
+from app.services.stripe_service import create_stripe_checkout_session
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 
@@ -81,3 +82,25 @@ def upgrade_user_settings(
     db.commit()
     db.refresh(setting)
     return setting
+
+class CheckoutSessionResponse(BaseModel):
+    url: str
+    simulated: bool
+
+@router.post("/upgrade/checkout-session", response_model=CheckoutSessionResponse)
+def get_upgrade_checkout_session(
+    current_user: User = Depends(get_current_user), 
+    db: Session = Depends(get_session)
+):
+    """Retrieve Stripe Checkout Session redirect URL for Pro Plan upgrade."""
+    try:
+        session_data = create_stripe_checkout_session(current_user.id, current_user.email)
+        return CheckoutSessionResponse(
+            url=session_data["url"],
+            simulated=session_data["simulated"]
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create checkout session: {str(e)}"
+        )

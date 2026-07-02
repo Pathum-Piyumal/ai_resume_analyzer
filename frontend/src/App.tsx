@@ -74,6 +74,29 @@ export default function App() {
       return
     }
 
+    // 2. Check for Stripe checkout / simulation upgrade success callbacks
+    const upgradeSim = params.get('upgrade_simulation')
+    const upgradeStatus = params.get('upgrade')
+    if (upgradeSim === 'true' || upgradeStatus === 'success') {
+      const runUpgrade = async () => {
+        try {
+          const authToken = localStorage.getItem('resumeiq-auth-token')
+          if (authToken) {
+            await api.upgradeToPro()
+            alert("Upgrade Successful! You have unlocked ResumeIQ Pro features.")
+            setView('app')
+            setAppTab('dashboard')
+            window.location.reload()
+          }
+        } catch (err) {
+          console.error("Simulation upgrade call failed:", err)
+        }
+      }
+      runUpgrade()
+      window.history.replaceState({}, document.title, window.location.pathname)
+      return
+    }
+
     const checkSession = async () => {
       const token = localStorage.getItem('resumeiq-auth-token')
       if (token) {
@@ -197,17 +220,17 @@ export default function App() {
 
   const getTabIcon = (tab: string) => {
     switch(tab) {
-      case 'dashboard': return <LayoutDashboard className="h-4.5 w-4.5 text-brand-lightBlue shrink-0" />
-      case 'analysis': return <BarChart3 className="h-4.5 w-4.5 text-brand-lightBlue shrink-0" />
+      case 'dashboard': return <LayoutDashboard className="h-5 w-5 text-brand-lightBlue shrink-0" />
+      case 'analysis': return <BarChart3 className="h-5 w-5 text-brand-lightBlue shrink-0" />
       case 'skillgap': 
-      case 'keywords': return <Target className="h-4.5 w-4.5 text-brand-lightBlue shrink-0" />
-      case 'formatting': return <Sliders className="h-4.5 w-4.5 text-brand-lightBlue shrink-0" />
-      case 'history': return <Clock className="h-4.5 w-4.5 text-brand-lightBlue shrink-0" />
-      case 'careerpath': return <Compass className="h-4.5 w-4.5 text-brand-lightBlue shrink-0" />
-      case 'savedjobs': return <Bookmark className="h-4.5 w-4.5 text-brand-lightBlue shrink-0" />
-      case 'settings': return <Settings className="h-4.5 w-4.5 text-brand-lightBlue shrink-0" />
-      case 'support': return <HelpCircle className="h-4.5 w-4.5 text-brand-lightBlue shrink-0" />
-      default: return <FileText className="h-4.5 w-4.5 text-brand-lightBlue shrink-0" />
+      case 'keywords': return <Target className="h-5 w-5 text-brand-lightBlue shrink-0" />
+      case 'formatting': return <Sliders className="h-5 w-5 text-brand-lightBlue shrink-0" />
+      case 'history': return <Clock className="h-5 w-5 text-brand-lightBlue shrink-0" />
+      case 'careerpath': return <Compass className="h-5 w-5 text-brand-lightBlue shrink-0" />
+      case 'savedjobs': return <Bookmark className="h-5 w-5 text-brand-lightBlue shrink-0" />
+      case 'settings': return <Settings className="h-5 w-5 text-brand-lightBlue shrink-0" />
+      case 'support': return <HelpCircle className="h-5 w-5 text-brand-lightBlue shrink-0" />
+      default: return <FileText className="h-5 w-5 text-brand-lightBlue shrink-0" />
     }
   }
 
