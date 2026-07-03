@@ -28,7 +28,7 @@ export default function ImprovementSuggestionsCard({ suggestions }: ImprovementS
 
   return (
     <div className="rounded-2xl border border-white/5 bg-brand-card/45 p-6 backdrop-blur-md shadow-xl text-left space-y-4">
-      
+
       {/* Header */}
       <div className="flex items-center gap-2 mb-2">
         <MapPin className="h-4.5 w-4.5 text-brand-lightBlue shrink-0" />
