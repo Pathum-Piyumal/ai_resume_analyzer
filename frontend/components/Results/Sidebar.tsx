@@ -13,7 +13,8 @@ import {
   User,
   FileText,
   Download,
-  X
+  X,
+  LogOut
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
@@ -55,6 +56,7 @@ export default function Sidebar({
     { id: 'keywords', name: 'Keywords', icon: Target },
     { id: 'formatting', name: 'Formatting', icon: Sliders },
     { id: 'competitors', name: 'Competitors', icon: Zap },
+    { id: 'savedjobs', name: 'Saved Jobs', icon: Bookmark },
     { id: 'history', name: 'History', icon: Clock }
   ]
 
@@ -183,6 +185,16 @@ export default function Sidebar({
                 )}
                 <HelpCircle className={`h-4.5 w-4.5 relative z-10 ${activeTab === 'support' ? 'text-brand-lightBlue' : 'text-brand-textMuted'}`} />
                 <span className="relative z-10">Help Center</span>
+              </button>
+
+              <button
+                onClick={onSignOut}
+                className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                  theme === 'light' ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100' : 'text-brand-textMuted hover:text-slate-200 hover:bg-white/5'
+                }`}
+              >
+                <LogOut className="h-4.5 w-4.5 text-brand-textMuted" />
+                <span>Sign Out</span>
               </button>
             </div>
 
@@ -318,8 +330,8 @@ export default function Sidebar({
                   theme === 'light' ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100' : 'text-brand-textMuted hover:text-slate-200 hover:bg-white/5'
                 }`}
               >
-                <User className="h-4.5 w-4.5 text-brand-textMuted" />
-                <span>Account</span>
+                <LogOut className="h-4.5 w-4.5 text-brand-textMuted" />
+                <span>Sign Out</span>
               </button>
             </div>
           </div>

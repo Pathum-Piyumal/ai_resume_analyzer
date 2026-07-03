@@ -246,8 +246,18 @@ export default function App() {
             transition={{ duration: 0.3 }}
             className="w-full min-h-screen"
           >
-            <RootLayout currentView="landing" onNavigate={(dest) => setView(dest)} theme={theme} onToggleTheme={handleToggleTheme}>
-              <HomePage onNavigate={(dest) => setView(dest === 'landing' ? 'landing' : 'signup')} />
+            <RootLayout currentView="landing" onNavigate={(dest) => {
+              const isLoggedIn = !!localStorage.getItem('resumeiq-auth-token')
+              setView(isLoggedIn ? 'app' : dest)
+            }} theme={theme} onToggleTheme={handleToggleTheme}>
+              <HomePage onNavigate={(dest) => {
+                const isLoggedIn = !!localStorage.getItem('resumeiq-auth-token')
+                if (isLoggedIn) {
+                  setView('app')
+                } else {
+                  setView('signup')
+                }
+              }} />
             </RootLayout>
           </motion.div>
         )
