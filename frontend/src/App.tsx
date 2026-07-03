@@ -55,6 +55,7 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [analysisResult, setAnalysisResult] = useState<FullAnalysisResult | null>(null)
   const [resetToken, setResetToken] = useState<string>('')
+  const [globalSearchQuery, setGlobalSearchQuery] = useState<string>('')
 
   // ── Theme State ──────────────────────────────────────────────────────────
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -410,6 +411,8 @@ export default function App() {
                 icon={getTabIcon(appTab)}
                 theme={theme}
                 onToggleTheme={handleToggleTheme}
+                searchQuery={globalSearchQuery}
+                onSearchChange={setGlobalSearchQuery}
                 title={
                   appTab === 'skillgap' || appTab === 'keywords'
                     ? 'Skill Gap Analysis' 
@@ -486,7 +489,12 @@ export default function App() {
 
                       {/* Tab: Saved Jobs */}
                       {appTab === 'savedjobs' && (
-                        <SavedJobsPage analysisResult={analysisResult} onNewAnalysis={handleReset} />
+                        <SavedJobsPage 
+                          analysisResult={analysisResult} 
+                          onNewAnalysis={handleReset} 
+                          searchQuery={globalSearchQuery}
+                          onSearchQueryChange={setGlobalSearchQuery}
+                        />
                       )}
 
                       {/* Tab: Settings */}
