@@ -84,6 +84,8 @@ export default function Navbar({ currentView = 'landing', onNavigate, theme = 'd
     </motion.button>
   )
 
+  const isLoggedIn = !!localStorage.getItem('resumeiq-auth-token')
+
   return (
     <nav className={`sticky top-0 z-50 w-full backdrop-blur-md transition-all duration-300 ${
       theme === 'light'
@@ -134,28 +136,39 @@ export default function Navbar({ currentView = 'landing', onNavigate, theme = 'd
           <div className="hidden md:flex items-center gap-2">
             <ThemeToggle />
             {currentView === 'landing' ? (
-              <>
+              isLoggedIn ? (
                 <motion.button
-                  onClick={() => onNavigate?.('signin')}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  className={`inline-flex items-center justify-center px-4 py-2 text-xs font-bold rounded-md border transition-all font-sans ${
-                    theme === 'light'
-                      ? 'text-slate-600 hover:text-slate-900 border-slate-200 hover:bg-slate-100'
-                      : 'text-slate-300 hover:text-white border-white/10 hover:bg-white/5'
-                  }`}
-                >
-                  Sign In
-                </motion.button>
-                <motion.button
-                  onClick={() => onNavigate?.('signup')}
+                  onClick={() => onNavigate?.('app')}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-white rounded-md bg-brand-blue hover:bg-blue-700 transition-all font-sans"
                 >
-                  Get Started
+                  Go to Dashboard
                 </motion.button>
-              </>
+              ) : (
+                <>
+                  <motion.button
+                    onClick={() => onNavigate?.('signin')}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className={`inline-flex items-center justify-center px-4 py-2 text-xs font-bold rounded-md border transition-all font-sans ${
+                      theme === 'light'
+                        ? 'text-slate-600 hover:text-slate-900 border-slate-200 hover:bg-slate-100'
+                        : 'text-slate-300 hover:text-white border-white/10 hover:bg-white/5'
+                    }`}
+                  >
+                    Sign In
+                  </motion.button>
+                  <motion.button
+                    onClick={() => onNavigate?.('signup')}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-white rounded-md bg-brand-blue hover:bg-blue-700 transition-all font-sans"
+                  >
+                    Get Started
+                  </motion.button>
+                </>
+              )
             ) : (
               <motion.button
                 onClick={() => onNavigate?.('landing')}
@@ -225,24 +238,33 @@ export default function Navbar({ currentView = 'landing', onNavigate, theme = 'd
           ))}
           <div className="mt-4 px-3 pb-2">
             {currentView === 'landing' ? (
-              <div className="flex flex-col gap-2">
+              isLoggedIn ? (
                 <button
-                  onClick={() => { setIsMobileMenuOpen(false); onNavigate?.('signin') }}
-                  className={`flex w-full items-center justify-center rounded-lg border py-2.5 text-center text-sm font-semibold transition-all active:scale-[0.98] ${
-                    theme === 'light'
-                      ? 'border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                      : 'border-white/10 text-slate-300 hover:text-white'
-                  }`}
-                >
-                  Sign In
-                </button>
-                <button
-                  onClick={() => { setIsMobileMenuOpen(false); onNavigate?.('signup') }}
+                  onClick={() => { setIsMobileMenuOpen(false); onNavigate?.('app') }}
                   className="flex w-full items-center justify-center rounded-lg bg-brand-blue py-2.5 text-center text-sm font-semibold text-white shadow-lg active:scale-[0.98] transition-transform duration-150"
                 >
-                  Get Started
+                  Go to Dashboard
                 </button>
-              </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => { setIsMobileMenuOpen(false); onNavigate?.('signin') }}
+                    className={`flex w-full items-center justify-center rounded-lg border py-2.5 text-center text-sm font-semibold transition-all active:scale-[0.98] ${
+                      theme === 'light'
+                        ? 'border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                        : 'border-white/10 text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => { setIsMobileMenuOpen(false); onNavigate?.('signup') }}
+                    className="flex w-full items-center justify-center rounded-lg bg-brand-blue py-2.5 text-center text-sm font-semibold text-white shadow-lg active:scale-[0.98] transition-transform duration-150"
+                  >
+                    Get Started
+                  </button>
+                </div>
+              )
             ) : (
               <button
                 onClick={() => { setIsMobileMenuOpen(false); onNavigate?.('landing') }}

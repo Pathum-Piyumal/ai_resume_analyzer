@@ -51,7 +51,7 @@ export default function SavedJobsPage({ analysisResult, onNewAnalysis }: SavedJo
     }
   }, [analysisResult])
 
-  if (!analysisResult) {
+  if (!analysisResult && savedJobs.length === 0) {
     return (
       <div className="max-w-xl mx-auto mt-16 text-center space-y-6 rounded-2xl border border-white/5 bg-brand-card/45 p-12 backdrop-blur-md shadow-2xl relative overflow-hidden">
         {/* Glow orb */}
@@ -221,14 +221,16 @@ export default function SavedJobsPage({ analysisResult, onNewAnalysis }: SavedJo
             </button>
           </div>
 
-          <motion.button 
-            onClick={() => setShowExplore(true)}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="px-4 py-2.5 rounded-xl bg-brand-blue hover:bg-blue-600 text-xs font-bold text-white shadow-lg shadow-brand-blue/15 transition-all focus:outline-none"
-          >
-            Find New Jobs
-          </motion.button>
+          {analysisResult && (
+            <motion.button 
+              onClick={() => setShowExplore(true)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="px-4 py-2.5 rounded-xl bg-brand-blue hover:bg-blue-600 text-xs font-bold text-white shadow-lg shadow-brand-blue/15 transition-all focus:outline-none"
+            >
+              Find New Jobs
+            </motion.button>
+          )}
         </div>
       </motion.div>
 
