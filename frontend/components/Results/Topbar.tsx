@@ -12,6 +12,8 @@ interface TopbarProps {
   icon?: React.ReactNode
   theme?: 'dark' | 'light'
   onToggleTheme?: () => void
+  searchQuery?: string
+  onSearchChange?: (val: string) => void
 }
 
 export default function Topbar({ 
@@ -22,7 +24,9 @@ export default function Topbar({
   onSettingsClick,
   icon,
   theme = 'dark',
-  onToggleTheme
+  onToggleTheme,
+  searchQuery = '',
+  onSearchChange
 }: TopbarProps) {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [notifications, setNotifications] = useState([
@@ -84,6 +88,8 @@ export default function Topbar({
           <input
             type="text"
             placeholder="Search Insights..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange?.(e.target.value)}
             className={`w-56 rounded-full border pl-9 pr-4 py-1.5 text-xs placeholder-slate-500 focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 transition-all font-sans font-light ${
               theme === 'light'
                 ? 'bg-slate-100 border-slate-200 text-slate-800'

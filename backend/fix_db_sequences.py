@@ -6,7 +6,21 @@ postgres_url = "postgresql://resume_db_xev4_user:OleJVEojFU9LN0dMf8QsjKdqFFMBsAV
 engine = create_engine(postgres_url)
 
 def fix_sequences():
-    print("Synchronizing PostgreSQL sequence generators...")
+    print("Synchronizing PostgreSQL sequence generators and migrating schemas...")
+    
+    # 1. Run migrations to add missing columns in usersetting if they don't exist
+    with Session(engine) as session:
+        try:
+            print("Adding columns first_name, last_name, job_title, avatar to usersetting if missing...")
+            session.execute(text("ALTER TABLE usersetting ADD COLUMN IF NOT EXISTS first_name VARCHAR DEFAULT 'Job'"))
+            session.execute(text("ALTER TABLE usersetting ADD COLUMN IF NOT EXISTS last_name VARCHAR DEFAULT 'Seeker'"))
+            session.execute(text("ALTER TABLE usersetting ADD COLUMN IF NOT EXISTS job_title VARCHAR DEFAULT 'Software Engineer'"))
+            session.execute(text("ALTER TABLE usersetting ADD COLUMN IF NOT EXISTS avatar TEXT"))
+            session.commit()
+            print("Database schemas updated successfully!")
+        except Exception as e:
+            print(f"Schema migration warning: {e}")
+            
     # List of tables to fix
     tables = ["user", "usersetting", "savedjob", "resumescan", "passwordresettoken"]
     

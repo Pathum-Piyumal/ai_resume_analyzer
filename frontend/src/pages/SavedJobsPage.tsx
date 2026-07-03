@@ -7,15 +7,21 @@ import { api, SavedJob } from '../utils/api'
 interface SavedJobsPageProps {
   analysisResult?: any
   onNewAnalysis?: () => void
+  searchQuery?: string
+  onSearchQueryChange?: (val: string) => void
 }
 
-export default function SavedJobsPage({ analysisResult, onNewAnalysis }: SavedJobsPageProps) {
+export default function SavedJobsPage({ 
+  analysisResult, 
+  onNewAnalysis,
+  searchQuery = '',
+  onSearchQueryChange
+}: SavedJobsPageProps) {
   const [savedJobs, setSavedJobs] = useState<SavedJob[]>([])
   const [exploreJobs, setExploreJobs] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [activeFilter, setActiveFilter] = useState<'all' | 'remote' | 'onsite'>('all')
   const [showExplore, setShowExplore] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
 
   // 1. Fetch saved jobs on mount
   useEffect(() => {
@@ -34,8 +40,10 @@ export default function SavedJobsPage({ analysisResult, onNewAnalysis }: SavedJo
 
   // 2. Setup job recommendations
   useEffect(() => {
+    let rawJobs: any[] = []
+    
     if (analysisResult?.jobs && analysisResult.jobs.length > 0) {
-      const mapped = analysisResult.jobs.map((job: any, idx: number) => ({
+      rawJobs = analysisResult.jobs.map((job: any, idx: number) => ({
         id: idx + 100,
         role: job.title || 'Software Engineer',
         company: job.platform || 'LinkedIn',
@@ -45,11 +53,49 @@ export default function SavedJobsPage({ analysisResult, onNewAnalysis }: SavedJo
         tags: [job.skill || 'Developer'],
         link: job.url || 'https://www.linkedin.com'
       }))
-      setExploreJobs(mapped)
     } else {
-      setExploreJobs([])
+      // Generate from missing skills if jobs list is not saved in database
+      const missing = analysisResult?.missing || analysisResult?.missing_skills || []
+      const jobTitle = analysisResult?.job_title || 'Software Developer'
+      if (missing.length > 0) {
+        rawJobs = missing.slice(0, 3).map((skill: string, idx: number) => ({
+          id: idx + 100,
+          role: `${skill.charAt(0).toUpperCase() + skill.slice(1)} Engineer`,
+          company: 'Industry Partner',
+          location: 'Remote',
+          salary: '$120k - $150k',
+          match: 80 + (idx * 5),
+          tags: [skill],
+          link: `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(skill + ' ' + jobTitle)}`
+        }))
+      } else if (jobTitle) {
+        rawJobs = [
+          {
+            id: 100,
+            role: jobTitle,
+            company: 'Tech Corporation',
+            location: 'Remote',
+            salary: '$110k - $140k',
+            match: 90,
+            tags: ['Software'],
+            link: `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(jobTitle)}`
+          }
+        ]
+      }
     }
-  }, [analysisResult])
+    
+    // Filter out jobs that are already saved
+    const savedLinks = new Set(savedJobs.map(sj => sj.link?.toLowerCase().trim()))
+    const savedTitles = new Set(savedJobs.map(sj => sj.title?.toLowerCase().trim() + '||' + sj.company?.toLowerCase().trim()))
+    
+    const filtered = rawJobs.filter(job => {
+      const hasLink = savedLinks.has(job.link?.toLowerCase().trim())
+      const hasTitleCompany = savedTitles.has(job.role?.toLowerCase().trim() + '||' + job.company?.toLowerCase().trim())
+      return !hasLink && !hasTitleCompany
+    })
+    
+    setExploreJobs(filtered)
+  }, [analysisResult, savedJobs])
 
   if (!analysisResult && savedJobs.length === 0) {
     return (
@@ -243,7 +289,7 @@ export default function SavedJobsPage({ analysisResult, onNewAnalysis }: SavedJo
           type="text" 
           placeholder="Search by role, company, or skill..." 
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => onSearchQueryChange?.(e.target.value)}
           className="w-full bg-[#121626]/60 border border-white/5 rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 transition-all font-light"
         />
       </motion.div>

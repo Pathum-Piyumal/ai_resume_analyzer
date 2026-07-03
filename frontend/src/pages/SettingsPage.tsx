@@ -6,9 +6,17 @@ interface SettingsPageProps {
   onUpgradeClick?: () => void
   theme?: 'dark' | 'light'
   onThemeChange?: (newTheme: 'dark' | 'light') => void
+  avatar?: string
+  onAvatarChange?: (newAvatar: string) => void
 }
 
-export default function SettingsPage({ onUpgradeClick, theme = 'dark', onThemeChange }: SettingsPageProps) {
+export default function SettingsPage({ 
+  onUpgradeClick, 
+  theme = 'dark', 
+  onThemeChange,
+  avatar = '',
+  onAvatarChange
+}: SettingsPageProps) {
   const [activeTab, setActiveTab] = useState<'profile' | 'notifications' | 'billing'>('profile')
   const [userEmail, setUserEmail] = useState('')
   const [emailNotifications, setEmailNotifications] = useState(true)
@@ -17,6 +25,41 @@ export default function SettingsPage({ onUpgradeClick, theme = 'dark', onThemeCh
   const [jobTitle, setJobTitle] = useState('Software Engineer')
   const [tier, setTier] = useState('free')
   const [isLoading, setIsLoading] = useState(true)
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files && files.length > 0) {
+      const file = files[0]
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Image exceeds the maximum 2MB size limit.")
+        return
+      }
+      
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          const maxDim = 150
+          canvas.width = maxDim
+          canvas.height = maxDim
+          
+          const ctx = canvas.getContext('2d')
+          if (ctx) {
+            const minSide = Math.min(img.width, img.height)
+            const sx = (img.width - minSide) / 2
+            const sy = (img.height - minSide) / 2
+            
+            ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, maxDim, maxDim)
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7)
+            if (onAvatarChange) onAvatarChange(dataUrl)
+          }
+        }
+        img.src = event.target?.result as string
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
   // 1. Load settings & profile on mount
   useEffect(() => {
@@ -28,6 +71,12 @@ export default function SettingsPage({ onUpgradeClick, theme = 'dark', onThemeCh
         const settings = await api.getSettings()
         setEmailNotifications(settings.email_notifications)
         setTier(settings.tier || 'free')
+        setFirstName(settings.first_name || 'Job')
+        setLastName(settings.last_name || 'Seeker')
+        setJobTitle(settings.job_title || 'Software Engineer')
+        if (settings.avatar && onAvatarChange) {
+          onAvatarChange(settings.avatar)
+        }
         if (onThemeChange) {
           onThemeChange(settings.theme as 'dark' | 'light')
         }
@@ -44,7 +93,11 @@ export default function SettingsPage({ onUpgradeClick, theme = 'dark', onThemeCh
     try {
       await api.updateSettings({
         theme: theme,
-        email_notifications: emailNotifications
+        email_notifications: emailNotifications,
+        first_name: firstName,
+        last_name: lastName,
+        job_title: jobTitle,
+        avatar: avatar
       })
       alert("Settings saved successfully!")
     } catch (err) {
@@ -111,7 +164,7 @@ export default function SettingsPage({ onUpgradeClick, theme = 'dark', onThemeCh
                 <div className="flex items-center gap-6">
                   <div className="relative group cursor-pointer shrink-0">
                     <img 
-                      src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop" 
+                      src={avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop"} 
                       alt="Profile" 
                       className="h-20 w-20 rounded-full object-cover border-2 border-brand-blue/30 group-hover:border-brand-lightBlue transition-all"
                     />
@@ -123,9 +176,9 @@ export default function SettingsPage({ onUpgradeClick, theme = 'dark', onThemeCh
                     <label className="flex items-center gap-2 rounded-xl border border-white/10 hover:border-white/20 bg-[#121626] px-4 py-2 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer w-max">
                       <Upload className="h-3.5 w-3.5" />
                       <span>Change Picture</span>
-                      <input type="file" className="hidden" accept="image/*" />
+                      <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} />
                     </label>
-                    <p className="text-[10px] text-brand-textMuted mt-2">JPG, GIF or PNG. Max size 2MB.</p>
+                    <p className="text-[10px] text-brand-textMuted mt-2">JPG, GIF or PNG. Max size 2MB (Auto-compressed).</p>
                   </div>
                 </div>
 

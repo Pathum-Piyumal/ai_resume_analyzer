@@ -119,6 +119,10 @@ export interface UserSettings {
   theme: string
   email_notifications: boolean
   tier?: string
+  first_name?: string
+  last_name?: string
+  job_title?: string
+  avatar?: string
 }
 
 // API methods

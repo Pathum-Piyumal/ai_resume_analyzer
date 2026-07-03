@@ -226,6 +226,27 @@ export default function Sidebar({
         /* DOCUMENT REVIEW MODE SHELL */
         <>
           <div>
+            {/* Brand Header */}
+            <div className="flex items-center justify-between gap-1 mb-8">
+              <button 
+                onClick={onLogoClick}
+                className="flex items-center gap-3 text-left group hover:opacity-90 transition-opacity"
+              >
+                <img src={logoUrl} alt="ResumeIQ Logo" className="h-10 w-auto object-contain drop-shadow-md" />
+                <div className="flex flex-col">
+                  <span className={`text-base font-bold tracking-tight font-sans leading-none ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+                    Resume<span className="text-brand-lightBlue">IQ</span>
+                  </span>
+                  <span className="text-[10px] text-brand-textMuted font-sans tracking-wide mt-1">
+                    AI Career Intelligence
+                  </span>
+                </div>
+              </button>
+              <button onClick={onClose} className={`transition-colors ${theme === 'light' ? 'text-slate-400 hover:text-slate-700' : 'text-slate-400 hover:text-white'}`} title="Close Sidebar">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
             {/* Document Card Header */}
             <div className={`rounded-xl border p-4 mb-6 flex items-center justify-between gap-3 relative ${
               theme === 'light' ? 'border-slate-200 bg-slate-50' : 'border-white/5 bg-[#121626]/80'
@@ -243,9 +264,6 @@ export default function Sidebar({
                   </p>
                 </div>
               </div>
-              <button onClick={onClose} className={`transition-colors shrink-0 ${theme === 'light' ? 'text-slate-400 hover:text-slate-700' : 'text-slate-400 hover:text-white'}`} title="Close Sidebar">
-                <X className="h-5 w-5" />
-              </button>
             </div>
 
             {/* Document Review Submenu */}

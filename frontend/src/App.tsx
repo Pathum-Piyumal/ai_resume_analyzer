@@ -55,6 +55,8 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [analysisResult, setAnalysisResult] = useState<FullAnalysisResult | null>(null)
   const [resetToken, setResetToken] = useState<string>('')
+  const [globalSearchQuery, setGlobalSearchQuery] = useState<string>('')
+  const [avatarUrl, setAvatarUrl] = useState<string>('')
 
   // ── Theme State ──────────────────────────────────────────────────────────
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -108,6 +110,7 @@ export default function App() {
           // Try to sync with user setting preferred theme
           const settings = await api.getSettings()
           setTheme(settings.theme as 'dark' | 'light')
+          setAvatarUrl(settings.avatar || '')
 
           // --- FETCH USER'S LATEST SCAN ---
           if (user.role === 'job_seeker') {
@@ -164,6 +167,7 @@ export default function App() {
     try {
       const settings = await api.getSettings()
       setTheme(settings.theme as 'dark' | 'light')
+      setAvatarUrl(settings.avatar || '')
     } catch {
       // Ignore setup fetch error on login
     }
@@ -194,6 +198,7 @@ export default function App() {
     localStorage.removeItem('resumeiq-auth-token')
     localStorage.removeItem('resumeiq-user-role')
     setAnalysisResult(null)
+    setAvatarUrl('')
     setAppTab('dashboard')
     setView('landing')
   }
@@ -410,6 +415,9 @@ export default function App() {
                 icon={getTabIcon(appTab)}
                 theme={theme}
                 onToggleTheme={handleToggleTheme}
+                searchQuery={globalSearchQuery}
+                onSearchChange={setGlobalSearchQuery}
+                userAvatar={avatarUrl || undefined}
                 title={
                   appTab === 'skillgap' || appTab === 'keywords'
                     ? 'Skill Gap Analysis' 
@@ -486,7 +494,12 @@ export default function App() {
 
                       {/* Tab: Saved Jobs */}
                       {appTab === 'savedjobs' && (
-                        <SavedJobsPage analysisResult={analysisResult} onNewAnalysis={handleReset} />
+                        <SavedJobsPage 
+                          analysisResult={analysisResult} 
+                          onNewAnalysis={handleReset} 
+                          searchQuery={globalSearchQuery}
+                          onSearchQueryChange={setGlobalSearchQuery}
+                        />
                       )}
 
                       {/* Tab: Settings */}
@@ -495,6 +508,8 @@ export default function App() {
                           onUpgradeClick={() => setAppTab('pro')} 
                           theme={theme}
                           onThemeChange={(newTheme) => setTheme(newTheme)}
+                          avatar={avatarUrl}
+                          onAvatarChange={setAvatarUrl}
                         />
                       )}
 

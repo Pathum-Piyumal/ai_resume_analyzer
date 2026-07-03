@@ -9,6 +9,10 @@ class UserSetting(SQLModel, table=True):
     theme: str = Field(default="dark")
     email_notifications: bool = Field(default=True)
     tier: str = Field(default="free") # "free" or "pro"
+    first_name: str = Field(default="Job")
+    last_name: str = Field(default="Seeker")
+    job_title: str = Field(default="Software Engineer")
+    avatar: Optional[str] = Field(default=None, nullable=True)
     
     # Relationship back to User
     user: Optional["User"] = Relationship(back_populates="setting")

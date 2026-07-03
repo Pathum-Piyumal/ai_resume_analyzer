@@ -13,11 +13,19 @@ class UserSettingUpdate(BaseModel):
     theme: str
     email_notifications: bool
     tier: Optional[str] = None
+    first_name: Optional[str] = "Job"
+    last_name: Optional[str] = "Seeker"
+    job_title: Optional[str] = "Software Engineer"
+    avatar: Optional[str] = None
 
 class UserSettingResponse(BaseModel):
     theme: str
     email_notifications: bool
     tier: str
+    first_name: str
+    last_name: str
+    job_title: str
+    avatar: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -33,7 +41,15 @@ def get_user_settings(
     
     # Lazy initialization if not exists
     if not setting:
-        setting = UserSetting(user_id=current_user.id, theme="dark", email_notifications=True)
+        setting = UserSetting(
+            user_id=current_user.id, 
+            theme="dark", 
+            email_notifications=True,
+            first_name="Job",
+            last_name="Seeker",
+            job_title="Software Engineer",
+            avatar=None
+        )
         db.add(setting)
         db.commit()
         db.refresh(setting)
@@ -58,6 +74,14 @@ def update_user_settings(
     setting.email_notifications = setting_data.email_notifications
     if setting_data.tier is not None:
         setting.tier = setting_data.tier
+    if setting_data.first_name is not None:
+        setting.first_name = setting_data.first_name
+    if setting_data.last_name is not None:
+        setting.last_name = setting_data.last_name
+    if setting_data.job_title is not None:
+        setting.job_title = setting_data.job_title
+    if setting_data.avatar is not None:
+        setting.avatar = setting_data.avatar
     
     db.add(setting)
     db.commit()
