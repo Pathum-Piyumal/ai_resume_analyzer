@@ -12,6 +12,7 @@ class UserSetting(SQLModel, table=True):
     first_name: str = Field(default="Job")
     last_name: str = Field(default="Seeker")
     job_title: str = Field(default="Software Engineer")
+    avatar: Optional[str] = Field(default=None, nullable=True)
     
     # Relationship back to User
     user: Optional["User"] = Relationship(back_populates="setting")

@@ -16,6 +16,7 @@ class UserSettingUpdate(BaseModel):
     first_name: Optional[str] = "Job"
     last_name: Optional[str] = "Seeker"
     job_title: Optional[str] = "Software Engineer"
+    avatar: Optional[str] = None
 
 class UserSettingResponse(BaseModel):
     theme: str
@@ -24,6 +25,7 @@ class UserSettingResponse(BaseModel):
     first_name: str
     last_name: str
     job_title: str
+    avatar: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -45,7 +47,8 @@ def get_user_settings(
             email_notifications=True,
             first_name="Job",
             last_name="Seeker",
-            job_title="Software Engineer"
+            job_title="Software Engineer",
+            avatar=None
         )
         db.add(setting)
         db.commit()
@@ -77,6 +80,8 @@ def update_user_settings(
         setting.last_name = setting_data.last_name
     if setting_data.job_title is not None:
         setting.job_title = setting_data.job_title
+    if setting_data.avatar is not None:
+        setting.avatar = setting_data.avatar
     
     db.add(setting)
     db.commit()
