@@ -12,3 +12,4 @@ pytest-asyncio
 httpx
 google-genai
 stripe
+psycopg2-binary

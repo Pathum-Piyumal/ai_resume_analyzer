@@ -16,23 +16,10 @@ export default function ProUpgradePage({ onUpgradeClick }: ProUpgradePageProps) 
   const [joinedWaitlist, setJoinedWaitlist] = useState(false)
   const [waitlistEmail, setWaitlistEmail] = useState('')
 
-  const handleUpgradeClick = async (planName: string) => {
-    if (planName === 'Pro') {
-      try {
-        setIsJoining(true)
-        const sessionData = await api.createStripeCheckoutSession()
-        window.location.href = sessionData.url
-      } catch (err) {
-        console.error("Failed to redirect to checkout:", err)
-        alert("Unable to reach checkout portal. Please try again later.")
-      } finally {
-        setIsJoining(false)
-      }
-    } else {
-      const plan = plans.find(p => p.name === planName)
-      setSelectedPlan(plan)
-      setIsModalOpen(true)
-    }
+  const handleUpgradeClick = (planName: string) => {
+    const plan = plans.find(p => p.name === planName)
+    setSelectedPlan(plan)
+    setIsModalOpen(true)
   }
 
   const handleJoinWaitlist = async (e: React.FormEvent) => {
@@ -90,10 +77,10 @@ export default function ProUpgradePage({ onUpgradeClick }: ProUpgradePageProps) 
         "Mock Interview Q&A matching",
         "Priority email support"
       ],
-      buttonText: "Upgrade Now",
+      buttonText: "Coming Soon",
       popular: true,
       color: "blue",
-      available: true
+      available: false
     },
     {
       name: "Elite",
