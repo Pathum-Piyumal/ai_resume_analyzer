@@ -28,6 +28,9 @@ export default function SettingsPage({ onUpgradeClick, theme = 'dark', onThemeCh
         const settings = await api.getSettings()
         setEmailNotifications(settings.email_notifications)
         setTier(settings.tier || 'free')
+        setFirstName(settings.first_name || 'Job')
+        setLastName(settings.last_name || 'Seeker')
+        setJobTitle(settings.job_title || 'Software Engineer')
         if (onThemeChange) {
           onThemeChange(settings.theme as 'dark' | 'light')
         }
@@ -44,7 +47,10 @@ export default function SettingsPage({ onUpgradeClick, theme = 'dark', onThemeCh
     try {
       await api.updateSettings({
         theme: theme,
-        email_notifications: emailNotifications
+        email_notifications: emailNotifications,
+        first_name: firstName,
+        last_name: lastName,
+        job_title: jobTitle
       })
       alert("Settings saved successfully!")
     } catch (err) {

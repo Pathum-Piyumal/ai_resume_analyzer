@@ -37,6 +37,7 @@ import { api } from '../utils/api'
 export default function HistoryPage({ onViewAnalysis, onNewAnalysis }: HistoryPageProps) {
   const [historyRows, setHistoryRows] = useState<HistoryRow[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [firstName, setFirstName] = useState('Job')
 
   // 1. Fetch scan history on mount
   useEffect(() => {
@@ -58,6 +59,15 @@ export default function HistoryPage({ onViewAnalysis, onNewAnalysis }: HistoryPa
           iconType: 'code' as const
         }))
         setHistoryRows(rows)
+        
+        try {
+          const settings = await api.getSettings()
+          if (settings.first_name) {
+            setFirstName(settings.first_name)
+          }
+        } catch (settingsErr) {
+          console.error("Failed to load settings in history page", settingsErr)
+        }
       } catch (err) {
         console.error("Failed to load history list", err)
       } finally {
@@ -198,7 +208,7 @@ export default function HistoryPage({ onViewAnalysis, onNewAnalysis }: HistoryPa
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative z-10">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-sans mb-1.5">
-            Welcome back, Alex!
+            Welcome back, {firstName}!
           </h1>
           <p className="text-xs sm:text-sm text-brand-textMuted font-sans font-light">
             Here is a look at your latest resume performance and analysis trends.
