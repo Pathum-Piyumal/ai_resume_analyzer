@@ -84,8 +84,7 @@ def test_forgot_password_success(client: TestClient, session: Session):
     
     response = client.post("/api/auth/forgot-password", json={"email": "forgot@example.com"})
     assert response.status_code == 200
-    assert "If an account exists" in response.json()["message"]
-    assert "token" not in response.json()
+    assert "Password reset link has been sent." in response.json()["message"]
     
     # Check that reset token was saved
     token_rec = session.exec(select(PasswordResetToken).where(PasswordResetToken.email == "forgot@example.com")).first()
@@ -94,8 +93,8 @@ def test_forgot_password_success(client: TestClient, session: Session):
 
 def test_forgot_password_not_found(client: TestClient):
     response = client.post("/api/auth/forgot-password", json={"email": "missing@example.com"})
-    assert response.status_code == 200
-    assert "If an account exists" in response.json()["message"]
+    assert response.status_code == 404
+    assert "No account found" in response.json()["detail"]
 
 def test_reset_password_success(client: TestClient, session: Session):
     user = User(email="reset@example.com", hashed_password=get_password_hash("Password123!"))

@@ -6,9 +6,6 @@ from email.mime.text import MIMEText
 
 logger = logging.getLogger(__name__)
 
-def email_delivery_configured():
-    return bool(os.getenv("RESEND_API_KEY") or (SMTP_HOST and SMTP_USER and SMTP_PASSWORD))
-
 # Load SMTP configurations
 SMTP_HOST = os.getenv("SMTP_HOST", "")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
@@ -23,28 +20,15 @@ def send_reset_email(to_email: str, token: str):
     """
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip('/')
     reset_link = f"{frontend_url}/?reset_token={token}"
-
-    # HTTPS delivery works on Render free instances, where SMTP ports are blocked.
-    if os.getenv("RESEND_API_KEY"):
-        import httpx
-        response = httpx.post(
-            "https://api.resend.com/emails",
-            headers={"Authorization": f"Bearer {os.environ['RESEND_API_KEY']}"},
-            json={
-                "from": os.getenv("SMTP_FROM", "ResumeIQ <noreply@resumeiq.com>"),
-                "to": [to_email],
-                "subject": "Reset Your ResumeIQ Password",
-                "text": f"Reset your password within 15 minutes: {reset_link}",
-            },
-            timeout=15,
-        )
-        if not response.is_success:
-            logger.error("Password recovery email delivery failed (status %s)", response.status_code)
-        return
     
     # 1. Fallback if not configured
     if not SMTP_HOST or not SMTP_USER or not SMTP_PASSWORD:
-        logger.warning("Password recovery email delivery is not configured")
+        logger.warning("SMTP settings not configured in .env. Falling back to console logging.")
+        print("\n" + "="*80)
+        print(f" PASSWORD RESET EMAIL SIMULATOR (No SMTP configured)")
+        print(f" To: {to_email}")
+        print(f" Reset Link: {reset_link}")
+        print("="*80 + "\n")
         return
 
     # 2. HTML Email Template
@@ -155,3 +139,5 @@ def send_reset_email(to_email: str, token: str):
         logger.info(f"Successfully sent password reset email to {to_email}")
     except Exception as e:
         logger.error(f"Failed to dispatch reset email via SMTP: {e}")
+        # Log recovery link as fallback if sending fails so developer can still access it
+        print(f"\n[SMTP FAILED FALLBACK] Reset Link for {to_email}: {reset_link}\n")

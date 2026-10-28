@@ -1,7 +1,5 @@
 import os
 import logging
-from fastapi import HTTPException
-from app.config import frontend_origin
 
 logger = logging.getLogger(__name__)
 
@@ -9,7 +7,13 @@ def create_stripe_checkout_session(user_id: int, user_email: str) -> dict:
     """Creates a Stripe Checkout Session or returns a local simulated link if keys are missing."""
     stripe_secret = os.getenv("STRIPE_SECRET_KEY")
     if not stripe_secret:
-        raise HTTPException(status_code=503, detail="Paid plans are not available yet.")
+        # Return a simulated success link that will call our mock DB switch
+        # For convenience, we redirect directly to a simulated route on the frontend
+        # that passes a query parameter to indicate mock success.
+        return {
+            "url": f"http://localhost:5173/?upgrade_simulation=true&user_id={user_id}",
+            "simulated": True
+        }
         
     import stripe
     stripe.api_key = stripe_secret
@@ -30,8 +34,8 @@ def create_stripe_checkout_session(user_id: int, user_email: str) -> dict:
                 'quantity': 1,
             }],
             mode='payment',
-            success_url=f'{frontend_origin()}/?upgrade=success',
-            cancel_url=f'{frontend_origin()}/?upgrade=cancel',
+            success_url='http://localhost:5173/?upgrade=success',
+            cancel_url='http://localhost:5173/?upgrade=cancel',
             metadata={
                 'user_id': str(user_id)
             }

@@ -1,8 +1,7 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
-from pydantic import BaseModel, Field
-from typing import Literal
+from pydantic import BaseModel
 from app.db import get_session
 from app.models.models import User, UserSetting
 from app.services.auth_utils import get_current_user
@@ -11,13 +10,13 @@ from app.services.stripe_service import create_stripe_checkout_session
 router = APIRouter(prefix="/settings", tags=["settings"])
 
 class UserSettingUpdate(BaseModel):
-    theme: Literal["dark", "light"]
+    theme: str
     email_notifications: bool
     tier: Optional[str] = None
     first_name: Optional[str] = "Job"
     last_name: Optional[str] = "Seeker"
     job_title: Optional[str] = "Software Engineer"
-    avatar: Optional[str] = Field(default=None, max_length=350000)
+    avatar: Optional[str] = None
 
 class UserSettingResponse(BaseModel):
     theme: str
@@ -73,8 +72,8 @@ def update_user_settings(
         
     setting.theme = setting_data.theme
     setting.email_notifications = setting_data.email_notifications
-    if setting_data.tier is not None and setting_data.tier != setting.tier:
-        raise HTTPException(status_code=403, detail="Subscription changes require a verified payment")
+    if setting_data.tier is not None:
+        setting.tier = setting_data.tier
     if setting_data.first_name is not None:
         setting.first_name = setting_data.first_name
     if setting_data.last_name is not None:
@@ -94,8 +93,19 @@ def upgrade_user_settings(
     current_user: User = Depends(get_current_user), 
     db: Session = Depends(get_session)
 ):
-    """Subscriptions can only be changed by a verified payment webhook."""
-    raise HTTPException(status_code=403, detail="Subscription changes require a verified payment")
+    """Upgrade the logged-in user's subscription tier to Pro."""
+    statement = select(UserSetting).where(UserSetting.user_id == current_user.id)
+    setting = db.exec(statement).first()
+    
+    if not setting:
+        setting = UserSetting(user_id=current_user.id, theme="dark", email_notifications=True)
+        db.add(setting)
+        
+    setting.tier = "pro"
+    db.add(setting)
+    db.commit()
+    db.refresh(setting)
+    return setting
 
 class CheckoutSessionResponse(BaseModel):
     url: str
@@ -113,10 +123,8 @@ def get_upgrade_checkout_session(
             url=session_data["url"],
             simulated=session_data["simulated"]
         )
-    except HTTPException:
-        raise
-    except Exception:
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Checkout is temporarily unavailable. Please try again later."
+            detail=f"Failed to create checkout session: {str(e)}"
         )

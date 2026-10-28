@@ -60,7 +60,7 @@ def migrate():
         print("Saved jobs migration complete.")
 
     print("\n==================================================")
-    print("ðŸŽ‰ SUCCESS! SQLite database fully migrated to Render PostgreSQL.")
+    print("🎉 SUCCESS! SQLite database fully migrated to Render PostgreSQL.")
     print("==================================================")
 
 if __name__ == "__main__":

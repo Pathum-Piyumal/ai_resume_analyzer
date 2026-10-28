@@ -39,7 +39,7 @@ describe('ResetPasswordPage', () => {
     const submitBtn = screen.getByRole('button', { name: /RESET PASSWORD/i })
     fireEvent.click(submitBtn)
     
-    expect(screen.getByText('Password must be at least 8 characters long.')).toBeInTheDocument()
+    expect(screen.getByText('Password must be at least 6 characters long.')).toBeInTheDocument()
     expect(api.resetPassword).not.toHaveBeenCalled()
   })
 

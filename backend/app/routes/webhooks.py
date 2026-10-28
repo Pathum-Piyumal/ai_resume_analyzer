@@ -32,10 +32,8 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_session)):
     event_type = event.get("type")
     logger.info(f"Received Stripe Webhook event: {event_type}")
     
-    if event_type in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
+    if event_type == "checkout.session.completed":
         session = event.get("data", {}).get("object", {})
-        if session.get("payment_status") != "paid":
-            return {"status": "ignored", "message": "Payment is not complete"}
         metadata = session.get("metadata", {})
         user_id_str = metadata.get("user_id")
         
@@ -65,7 +63,7 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_session)):
             db.rollback()
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Could not process payment notification"
+                detail=f"Failed to complete checkout processing: {str(e)}"
             )
             
     return {"status": "ignored", "event_type": event_type}

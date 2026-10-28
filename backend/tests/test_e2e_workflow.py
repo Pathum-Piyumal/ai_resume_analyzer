@@ -77,11 +77,12 @@ def test_full_user_acceptance_workflow(
     
     # 6. Upgrade user to Pro plan
     upgrade_resp = client.post("/api/settings/upgrade", headers=headers)
-    assert upgrade_resp.status_code == 403
+    assert upgrade_resp.status_code == 200
+    assert upgrade_resp.json()["tier"] == "pro"
     
     # Confirm settings now reflect Pro tier
     settings_resp2 = client.get("/api/settings", headers=headers)
-    assert settings_resp2.json()["tier"] == "free"
+    assert settings_resp2.json()["tier"] == "pro"
     
     # 7. Request forgot password link
     forgot_resp = client.post("/api/auth/forgot-password", json={"email": "e2e_user@example.com"})

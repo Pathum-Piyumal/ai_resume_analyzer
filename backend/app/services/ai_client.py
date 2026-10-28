@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 # Configure Gemini API client
 API_KEY = os.getenv("GEMINI_API_KEY")
 if API_KEY:
-    client = genai.Client(api_key=API_KEY, http_options=types.HttpOptions(timeout=30000))
+    client = genai.Client(api_key=API_KEY)
 else:
     client = None
     logger.warning("GEMINI_API_KEY is not set. AI Resume analysis will fall back to rule-based matcher.")
@@ -32,7 +32,7 @@ async def call_gemini_with_retry(prompt: str, response_mime_type: str = None) ->
             # Run the synchronous generate_content in a thread pool to avoid blocking the event loop
             response = await asyncio.to_thread(
                 client.models.generate_content,
-                model=os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite"),
+                model="gemini-1.5-flash",
                 contents=prompt,
                 config=config
             )
