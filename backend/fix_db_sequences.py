@@ -51,4 +51,3 @@ def fix_sequences():
 
 if __name__ == "__main__":
     fix_sequences()
-

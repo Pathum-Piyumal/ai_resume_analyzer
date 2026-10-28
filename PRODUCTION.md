@@ -7,7 +7,7 @@
 - Neon hosts PostgreSQL over TLS. Use a connection string containing `sslmode=require`.
 - Set the Render health check to `/health/ready`. `/health/live` checks the process only.
 
-Free hosting has capacity limits and cold starts. Neon's free plan has no fixed trial expiration; usage allowances still apply. The current Render database expires November 27, 2026 until cutover to Neon is verified.
+Free hosting has capacity limits and cold starts. Neon's free plan has no fixed trial expiration; usage allowances still apply. The live data has been imported into the separate `ResumeIQ Production` Neon project in Oregon, on its `import` branch, and Render's connection has been switched to it. The original Render database is retained temporarily for rollback and expires November 27, 2026.
 
 ## Required configuration
 
@@ -44,7 +44,7 @@ From `backend/`: `python -m pytest tests -q`.
 
 From `frontend/`: `npm test`, `npx tsc --noEmit`, and `npm run build`.
 
-The [CI workflow](.github/workflows/ci.yml) runs these checks. Verify the live deployment after publishing; local passing tests do not prove the deployed service has the new code.
+The [CI workflow](.github/workflows/ci.yml) runs these checks. Backend dependencies are pinned to locally tested versions, including SQLModel and Pydantic, to avoid incompatible timestamp behavior in fresh installations. Verify the live deployment after publishing; local passing tests do not prove the deployed service has the new code.
 
 ## Remaining launch work
 
