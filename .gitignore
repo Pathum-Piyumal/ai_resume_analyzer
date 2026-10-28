@@ -1,5 +1,6 @@
 # Database files
 *.db
+*.db.*.bak
 *.sqlite
 *.sqlite3
 
@@ -22,6 +23,10 @@ build/
 
 # Local configuration & environment files
 .env
+.env.*.local
+.env.migration
+*.dump
+backend/backups/
 .env.local
 .env.development.local
 .env.test.local

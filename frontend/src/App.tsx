@@ -84,11 +84,10 @@ export default function App() {
         try {
           const authToken = localStorage.getItem('resumeiq-auth-token')
           if (authToken) {
-            await api.upgradeToPro()
-            alert("Upgrade Successful! You have unlocked ResumeIQ Pro features.")
+            const settings = await api.getSettings()
+            alert(settings.tier === 'pro' ? 'Your Pro plan is active.' : 'Your payment is being verified. Your plan will update after confirmation.')
             setView('app')
             setAppTab('dashboard')
-            window.location.reload()
           }
         } catch (err) {
           console.error("Simulation upgrade call failed:", err)

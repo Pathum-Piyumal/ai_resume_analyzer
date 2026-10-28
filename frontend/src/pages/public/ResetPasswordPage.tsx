@@ -19,8 +19,12 @@ export default function ResetPasswordPage({ token, onBackToLogin }: ResetPasswor
     e.preventDefault()
     if (!password || !confirmPassword) return
     
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long.')
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long.')
+      return
+    }
+    if (new TextEncoder().encode(password).length > 72) {
+      setError('Password must be at most 72 bytes long.')
       return
     }
 

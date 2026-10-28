@@ -52,10 +52,8 @@ def test_update_settings_success(client: TestClient, session: Session, auth_head
 def test_upgrade_to_pro_success(client: TestClient, session: Session, auth_header: tuple):
     user, headers = auth_header
     response = client.post("/api/settings/upgrade", headers=headers)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["tier"] == "pro"
+    assert response.status_code == 403
 
     # Check db
     db_setting = session.exec(select(UserSetting).where(UserSetting.user_id == user.id)).first()
-    assert db_setting.tier == "pro"
+    assert db_setting.tier == "free"

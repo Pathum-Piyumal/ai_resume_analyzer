@@ -10,7 +10,7 @@ if DATABASE_URL.startswith("postgres://"):
 # connect_args={"check_same_thread": False} is required only for SQLite
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+engine = create_engine(DATABASE_URL, connect_args=connect_args, pool_pre_ping=True, pool_recycle=300)
 
 # Enable foreign key support in SQLite
 if DATABASE_URL.startswith("sqlite"):

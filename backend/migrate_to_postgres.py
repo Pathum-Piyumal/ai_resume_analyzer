@@ -7,7 +7,7 @@ from app.models.models import User, UserSetting, ResumeScan, SavedJob, PasswordR
 sqlite_engine = create_engine("sqlite:///resume_analyzer.db")
 
 # Render PostgreSQL Engine (Target)
-postgres_url = "postgresql://resume_db_xev4_user:OleJVEojFU9LN0dMf8QsjKdqFFMBsAVm@dpg-d937284vikkc73e6b3o0-a.oregon-postgres.render.com/resume_db_xev4"
+postgres_url = os.environ["DATABASE_URL"]
 postgres_engine = create_engine(postgres_url)
 
 def migrate():
@@ -60,8 +60,9 @@ def migrate():
         print("Saved jobs migration complete.")
 
     print("\n==================================================")
-    print("🎉 SUCCESS! SQLite database fully migrated to Render PostgreSQL.")
+    print("ðŸŽ‰ SUCCESS! SQLite database fully migrated to Render PostgreSQL.")
     print("==================================================")
 
 if __name__ == "__main__":
     migrate()
+

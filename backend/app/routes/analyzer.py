@@ -22,7 +22,7 @@ async def analyze_resume(
     db: Session = Depends(get_session)
 ):
     # 1. Validation
-    if not resume.filename.endswith('.pdf'):
+    if not (resume.filename or '').lower().endswith('.pdf'):
         raise HTTPException(
             status_code=400,    
             detail="Only PDF files are accepted"
@@ -33,6 +33,8 @@ async def analyze_resume(
             status_code=400,
             detail="Job description cannot be empty"
         )
+    if len(job_description) > 30000:
+        raise HTTPException(status_code=413, detail="Job description exceeds the 30,000 character limit")
 
     # Enforce maximum size constraint (5MB) and check empty file
     MAX_FILE_SIZE = 5 * 1024 * 1024
@@ -117,8 +119,12 @@ async def analyze_resume_stream(
             await asyncio.sleep(0.5)
             
             # Validation
-            if not resume.filename.endswith('.pdf'):
+            if not (resume.filename or '').lower().endswith('.pdf'):
                 yield json.dumps({"status": "error", "message": "Only PDF files are accepted"}) + "\n"
+                return
+
+            if len(job_description) > 30000:
+                yield json.dumps({"status": "error", "message": "Job description exceeds the 30,000 character limit"}) + "\n"
                 return
             
             if not job_description.strip():
@@ -196,6 +202,9 @@ async def analyze_resume_stream(
             yield json.dumps({"status": "completed", "result": final_result}) + "\n"
             
         except Exception as e:
-            yield json.dumps({"status": "error", "message": f"Server error: {str(e)}"}) + "\n"
+            db.rollback()
+            import logging
+            logging.getLogger(__name__).exception("Resume analysis failed")
+            yield json.dumps({"status": "error", "message": "Analysis could not be completed. Please try again later."}) + "\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")

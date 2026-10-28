@@ -2,7 +2,7 @@ import os
 from sqlmodel import create_engine, Session, text
 
 # Render PostgreSQL Engine (Target)
-postgres_url = "postgresql://resume_db_xev4_user:OleJVEojFU9LN0dMf8QsjKdqFFMBsAVm@dpg-d937284vikkc73e6b3o0-a.oregon-postgres.render.com/resume_db_xev4"
+postgres_url = os.environ["DATABASE_URL"]
 engine = create_engine(postgres_url)
 
 def fix_sequences():
@@ -51,3 +51,4 @@ def fix_sequences():
 
 if __name__ == "__main__":
     fix_sequences()
+

@@ -1,9 +1,18 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api'
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8000/api' : '/api')).replace(/\/$/, '')
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 90000,
+})
+
+apiClient.interceptors.response.use(response => response, error => {
+  const detail = error.response?.data?.detail
+  if (Array.isArray(detail)) {
+    error.response.data.detail = detail.map(item => item.msg || 'Invalid input').join('. ')
+  }
+  return Promise.reject(error)
 })
 
 // Inject JWT token into headers for every request
@@ -128,8 +137,8 @@ export interface UserSettings {
 // API methods
 export const api = {
   // Auth
-  async register(email: string, password: string): Promise<UserResponse> {
-    const response = await apiClient.post<UserResponse>('/auth/register', { email, password })
+  async register(email: string, password: string, fullName = ''): Promise<UserResponse> {
+    const response = await apiClient.post<UserResponse>('/auth/register', { email, password, full_name: fullName })
     return response.data
   },
 
